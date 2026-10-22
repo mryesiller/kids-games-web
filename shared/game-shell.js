@@ -28,7 +28,7 @@ export function bootGame(game, opts = {}) {
   });
   syncSound();
 
-  let level = Math.max(getLevel(game.id), opts.defaultLevel ?? 1);
+  let level = Math.max(Math.min(getLevel(game.id), game.maxLevel ?? 3), opts.defaultLevel ?? 1);
   let instance = null;
 
   const run = () => {
@@ -38,11 +38,12 @@ export function bootGame(game, opts = {}) {
       level,
       onWin: ({ stars }) => {
         setStars(game.id, stars);
-        setLevel(game.id, Math.min(level + 1, 99));
+        const maxL = game.maxLevel ?? 3;
+        setLevel(game.id, Math.min(level + 1, maxL));
         showWinOverlay({
           stars,
           onAgain: () => run(),
-          onNext: level < (game.maxLevel ?? 3) ? (() => { level += 1; run(); }) : undefined,
+          onNext: level < maxL ? (() => { level += 1; run(); }) : undefined,
         });
       },
       onExit: () => { window.location.href = "../../index.html"; },

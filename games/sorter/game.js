@@ -12,14 +12,24 @@ export const OBJECTS_PER_ROUND = 8;
 const COLORS = {
   red: { css: "#e74c3c", label: "Kırmızı", glyph: "🔴" },
   blue: { css: "#3498db", label: "Mavi", glyph: "🔵" },
+  yellow: { css: "#f1c40f", label: "Sarı", glyph: "🟡" },
+  green: { css: "#2ecc71", label: "Yeşil", glyph: "🟢" },
+  purple: { css: "#9b59b6", label: "Mor", glyph: "🟣" },
 };
+const COLOR_ORDER = ["red", "blue", "yellow", "green", "purple"];
 
-export function makeObjects(roundIndex, rng = Math.random) {
+/** 20 seviye: 1-4 arası 2 renk, sonra her 4 seviyede 1 renk eklenir (maks 5). */
+export function colorsForLevel(level) {
+  const count = Math.min(5, 2 + Math.floor((level - 1) / 4));
+  return COLOR_ORDER.slice(0, count);
+}
+
+export function makeObjects(roundIndex, colors, rng = Math.random) {
   const objs = [];
   for (let i = 0; i < OBJECTS_PER_ROUND; i++) {
     objs.push({
       iconId: 1 + Math.floor(rng() * ICON_COUNT),
-      color: i % 2 === 0 ? "red" : "blue",
+      color: colors[i % colors.length],
     });
   }
   for (let i = objs.length - 1; i > 0; i--) {
@@ -134,7 +144,8 @@ export default {
     function startRound() {
       placedThisRound = 0;
       const rule = ruleFor(level, round);
-      const objs = makeObjects(round);
+      const activeColors = colorsForLevel(level);
+      const objs = makeObjects(round, activeColors);
       ruleBanner.textContent =
         rule === "color" ? "RENE GÖRE AYIR!" : rule === "shape" ? "ŞEKLİNE GÖRE AYIR!" : "RENK + ŞEKİL BİRLİKTE!";
 
@@ -144,7 +155,7 @@ export default {
       const secondIcon = objs.find((o) => o.iconId !== firstIcon)?.iconId ?? firstIcon;
       const defs =
         rule === "color"
-          ? [{ color: "red" }, { color: "blue" }]
+          ? activeColors.map((c) => ({ color: c }))
           : rule === "shape"
             ? [{ color: null, iconId: firstIcon }, { color: null, iconId: secondIcon }]
             : [
