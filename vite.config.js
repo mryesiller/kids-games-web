@@ -26,6 +26,7 @@ export default defineConfig({
   plugins: [
     VitePWA({
       registerType: "autoUpdate",
+      injectRegister: "null", // kaydı public/sw-register.js yapar (updateViaCache:'none')
       // ikonlar globPatterns (**/*.png) ile zaten precache'leniyor — includeAssets gereksiz
       manifest: {
         name: "Zeka Oyunları",
