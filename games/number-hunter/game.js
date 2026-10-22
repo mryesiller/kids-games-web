@@ -6,7 +6,7 @@ import { starsFromCorrect } from "../../shared/difficulty.js";
 import { sfx } from "../../shared/audio.js";
 
 // Higgsfield balon sprite'ları (build'e dahil)
-const spriteMods = import.meta.glob("./assets/balloon-*.webp", { eager: true, import: "default", query: "?url" });
+const spriteMods = import.meta.glob("./assets/balloon-*.png", { eager: true, import: "default", query: "?url" });
 const SPRITES = Object.entries(spriteMods)
   .sort(([a], [b]) => a.localeCompare(b))
   .map(([, url]) => {
@@ -104,7 +104,7 @@ export default {
       b.r = Math.min(W, H) * 0.09 + 14;
       b.x = b.r + Math.random() * Math.max(1, W - 2 * b.r);
       b.y = H + b.r;
-      b.speed = (14 + level * 10 + Math.random() * 16) * (H / 500); // px/sn, seviyeye göre
+      b.speed = (45 + level * 15 + Math.random() * 25) * (H / 500); // px/sn: 1. seviyede de akıcı tırmanış
       b.sprite = SPRITES[Math.floor(Math.random() * SPRITES.length)];
     }
 
@@ -149,7 +149,7 @@ export default {
       if (!question) newQuestion();
       for (const b of balloons) {
         if (!b.active) {
-          if (Math.random() < 0.02) spawn(b);
+          if (Math.random() < 0.035) spawn(b);
           continue;
         }
         b.y -= b.speed * dt;
@@ -166,9 +166,13 @@ export default {
           ctx.fill();
         }
         ctx.fillStyle = "#fff";
-        ctx.font = `700 ${Math.round(b.r * 0.7)}px system-ui`;
+        ctx.font = `800 ${Math.round(b.r * 0.62)}px system-ui`;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
+        ctx.lineWidth = Math.max(3, b.r * 0.12);
+        ctx.strokeStyle = "rgb(0 0 0 / 0.4)";
+        ctx.strokeText(b.label, b.x, b.y);
+        ctx.fillStyle = "#fff";
         ctx.fillText(b.label, b.x, b.y);
       }
     }
