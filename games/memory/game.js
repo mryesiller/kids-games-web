@@ -4,19 +4,22 @@ import { t } from "../../shared/i18n.js";
 import { shuffled, starsFromMoves } from "../../shared/difficulty.js";
 import { sfx } from "../../shared/audio.js";
 import { ICON_URL, ICON_COUNT } from "../../shared/icons.js";
+import { showStartOverlay } from "../../shared/ui.js";
 
 /** Seviye → çift sayısı: bölüm geçtikçe kare sayısı artar (6 → 8 → 12 → 16 → 20 kart). */
 const PAIRS_BY_LEVEL = { 1: 3, 2: 4, 3: 6, 4: 8, 5: 10 };
 const OPTIMAL_MOVES = { 1: 3, 2: 4, 3: 6, 4: 8, 5: 10 }; // optimal = çift sayısı (alt sınır)
-const PREVIEW_MS = 1000; // başlamadan önce tüm kartlar 1 sn açık gösterilir
+const PREVIEW_MS = 3000; // Başla'ya basınca tüm kartlar 3 sn açık gösterilir (ezber süresi)
 const COLUMNS_BY_PAIRS = { 3: 3, 4: 4, 6: 4, 8: 4, 10: 5 };
 
 export const MAX_LEVEL = 5;
 
 export function deal(pairs, rng = Math.random) {
-  const ids = Array.from({ length: pairs }, (_, i) => (i % ICON_COUNT) + 1);
+  // havuzdan rastgele `pairs` farklı ikon seç (çeşitlilik: 22 ikon)
+  const pool = shuffled(Array.from({ length: ICON_COUNT }, (_, i) => i + 1), rng);
+  const chosen = pool.slice(0, pairs);
   return shuffled(
-    ids.flatMap((id) => [id, id]),
+    chosen.flatMap((id) => [id, id]),
     rng,
   );
 }
@@ -115,14 +118,20 @@ export default {
     }
     container.append(movesEl, grid);
 
-    // Önizleme: tüm kartlar 1 sn açık gösterilir, sonra kapanır ve oyun başlar
-    cards.forEach(flipUp);
-    timers.push(
-      setTimeout(() => {
-        cards.forEach(flipDown);
-        lock = false;
-      }, PREVIEW_MS),
-    );
+    // Başla overlay'i: talimat + silik arka fon; Başla → 3 sn önizleme → oyun
+    showStartOverlay({
+      instruction: "Kartlara dikkatlice bak ve ezberle!",
+      icon: "🃏",
+      onStart: () => {
+        cards.forEach(flipUp);
+        timers.push(
+          setTimeout(() => {
+            cards.forEach(flipDown);
+            lock = false;
+          }, PREVIEW_MS),
+        );
+      },
+    });
 
     return {
       pause() {

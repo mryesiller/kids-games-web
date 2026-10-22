@@ -3,6 +3,7 @@
 // Ses: Web Audio osilatör (audio.js). Hata → aynı dizi yeniden gösterilir (cezasız).
 import { getBest, setBest } from "../../shared/storage.js";
 import { playTones } from "../../shared/audio.js";
+import { showStartOverlay } from "../../shared/ui.js";
 
 export const TARGET_ROUND = 10; // 10 tur tamamlanınca kazanma
 
@@ -152,7 +153,11 @@ export default {
     if (b > 0) best.textContent = `Rekor: ${b} tur`;
 
     container.append(status, board, best);
-    timers.push(setTimeout(beginRound, 600));
+    showStartOverlay({
+      instruction: "Renk dizisini izle, sonra aynı sırayla tekrar et!",
+      icon: "🎵",
+      onStart: () => timers.push(setTimeout(beginRound, 400)),
+    });
 
     return {
       pause,

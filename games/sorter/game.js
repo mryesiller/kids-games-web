@@ -1,6 +1,7 @@
 // game.js — O8 Renk ve Şekil Ayıklayıcı (PRD): nesne doğru kutuya; kural tur değiştirir.
-// Görseller: Higgsfield hayvan ikonları; "renk" nesnesi CSS hue-rotate filtresiyle (filtre = renk kimliği).
-// Seviyeler: tek kural (renk) → kural değişimi (renk/şekil, kutu etiketi ikonla net) → iki kural birlikte.
+// Renk modeli: nesnenin ALTINDAKİ RENKLİ ROZET (kırmızı/mavi daire) — filtre kullanılmaz,
+// böylece kutu etiketi ile nesne rengi her zaman birebir aynıdır (çocuk için tek yorum).
+// Seviyeler: tek kural (renk) → kural değişimi (renk/şekil) → iki kural birlikte.
 import { enableDrag, createTapSelect } from "../../shared/drag.js";
 import { starsFromWrong } from "../../shared/drag-helpers.js";
 import { ICON_URL, ICON_COUNT } from "../../shared/icons.js";
@@ -8,13 +9,11 @@ import { sfx } from "../../shared/audio.js";
 
 export const OBJECTS_PER_ROUND = 8;
 
-const COLOR_FILTERS = {
-  red: "filter:sepia(1) saturate(5) hue-rotate(-30deg)",
-  blue: "filter:sepia(1) saturate(5) hue-rotate(170deg)",
+const COLORS = {
+  red: { css: "#e74c3c", label: "Kırmızı", glyph: "🔴" },
+  blue: { css: "#3498db", label: "Mavi", glyph: "🔵" },
 };
-const COLOR_LABELS = { red: ["🔴", "Kırmızı"], blue: ["🔵", "Mavi"] };
 
-/** Bir turun nesnelerini üret: {iconId, color} — her renkten eşit sayıda, deterministik karışım. */
 export function makeObjects(roundIndex, rng = Math.random) {
   const objs = [];
   for (let i = 0; i < OBJECTS_PER_ROUND; i++) {
@@ -23,7 +22,6 @@ export function makeObjects(roundIndex, rng = Math.random) {
       color: i % 2 === 0 ? "red" : "blue",
     });
   }
-  // karıştır (roundIndex'e bağlı deterministik)
   for (let i = objs.length - 1; i > 0; i--) {
     const j = (roundIndex * (i + 3)) % (i + 1);
     [objs[i], objs[j]] = [objs[j], objs[i]];
@@ -31,7 +29,6 @@ export function makeObjects(roundIndex, rng = Math.random) {
   return objs;
 }
 
-/** Kural: level 1-2'nin ilk yarısı renk, L2 ikinci yarısı şekil, L3 iki kural. */
 export function ruleFor(level, roundIndex) {
   if (level === 1) return "color";
   if (level === 2) return roundIndex % 2 === 0 ? "color" : "shape";
@@ -47,19 +44,23 @@ export function accepts(rule, obj, box) {
 export default {
   id: "sorter",
   start(container, { level, onWin }) {
-    const ROUNDS = 3; // kural turu (her turda 8 nesne)
+    const ROUNDS = 3;
     let round = 0;
-    let correct = 0;
     let wrongDrops = 0;
     let placedThisRound = 0;
     const cleanups = [];
 
+    container.style.cssText = "width:100%;display:flex;flex-direction:column;gap:10px";
+
     const ruleBanner = document.createElement("div");
     ruleBanner.className = "hint";
+    ruleBanner.style.fontWeight = "800";
+    ruleBanner.style.color = "var(--fg)";
     const boxRow = document.createElement("div");
-    boxRow.style.cssText = "display:flex;gap:16px;justify-content:center;width:100%";
-    const objRow = document.createElement("div");
-    objRow.style.cssText = "display:flex;gap:10px;flex-wrap:wrap;justify-content:center;width:100%;min-height:90px";
+    boxRow.style.cssText = "display:flex;gap:12px;justify-content:space-evenly;width:100%;flex-wrap:wrap";
+    const objGrid = document.createElement("div");
+    objGrid.style.cssText =
+      "display:grid;grid-template-columns:repeat(4,minmax(64px,96px));gap:10px;justify-content:center;width:100%";
 
     const tap = createTapSelect({
       onSelect(el, on) {
@@ -73,25 +74,59 @@ export default {
     let boxes = [];
 
     function tryBox(boxEl, piece) {
+      if (!piece.isConnected) return; // yerleşmiş/geçici öğeye ikinci olay: yoksay (donma fix)
       const obj = { color: piece.dataset.color, iconId: Number(piece.dataset.icon) };
       const box = boxes.find((b) => b.el === boxEl);
       if (accepts(ruleFor(level, round), obj, box)) {
-        piece.remove();
-        correct += 1;
+        // nazik yerleşim: parça küçülerek kaybolur, shake yok
+        piece.style.transition = "transform 0.25s, opacity 0.25s";
+        piece.style.transform = "scale(0.4)";
+        piece.style.opacity = "0";
+        piece.style.pointerEvents = "none";
+        setTimeout(() => piece.remove(), 260);
         placedThisRound += 1;
         sfx.correct();
         if (placedThisRound === OBJECTS_PER_ROUND) {
           round += 1;
-          if (round === ROUNDS) onWin({ stars: starsFromWrong(wrongDrops) });
-          else startRound();
+          if (round === ROUNDS) {
+            onWin({ stars: starsFromWrong(wrongDrops) });
+          } else {
+            startRound();
+          }
         }
       } else {
         wrongDrops += 1;
         sfx.wrong();
-        piece.classList.remove("shake");
-        void piece.offsetWidth;
-        piece.classList.add("shake");
+        boxEl.classList.remove("shake");
+        void boxEl.offsetWidth;
+        boxEl.classList.add("shake"); // yanlış KUTU sarsılır, nesne yerinde kalır
       }
+    }
+
+    function makeObjectButton(obj) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.dataset.color = obj.color;
+      b.dataset.icon = obj.iconId;
+      b.setAttribute("aria-label", "nesne");
+      b.style.cssText =
+        "aspect-ratio:1;padding:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px";
+      const img = document.createElement("img");
+      img.src = ICON_URL(obj.iconId);
+      img.alt = "";
+      img.draggable = false;
+      img.style.cssText = "width:78%;height:70%;object-fit:contain";
+      const badge = document.createElement("span");
+      badge.style.cssText = `width:34%;aspect-ratio:1;border-radius:50%;background:${COLORS[obj.color].css};border:3px solid #fff;box-shadow:0 0 0 2px ${COLORS[obj.color].css}`;
+      b.append(img, badge);
+      cleanups.push(
+        enableDrag(b, {
+          getTargets: () => boxes.map((x) => x.el),
+          onDrop: (boxEl) => tryBox(boxEl, b),
+        }),
+      );
+      b.addEventListener("click", () => tap.pickItem(b));
+      return b;
     }
 
     function startRound() {
@@ -99,83 +134,62 @@ export default {
       const rule = ruleFor(level, round);
       const objs = makeObjects(round);
       ruleBanner.textContent =
-        rule === "color" ? "RENE göre ayır!" : rule === "shape" ? "ŞEKLİNE göre ayır!" : "RENK ve ŞEKİL birleşti!";
+        rule === "color" ? "RENE GÖRE AYIR!" : rule === "shape" ? "ŞEKLİNE GÖRE AYIR!" : "RENK + ŞEKİL BİRLİKTE!";
 
-      // kutular
       boxRow.replaceChildren();
       boxes = [];
+      const firstIcon = objs[0].iconId;
+      const secondIcon = objs.find((o) => o.iconId !== firstIcon)?.iconId ?? firstIcon;
       const defs =
         rule === "color"
           ? [{ color: "red" }, { color: "blue" }]
           : rule === "shape"
-            ? [
-                { color: null, iconId: objs[0].iconId },
-                { color: null, iconId: objs.find((o) => o.iconId !== objs[0].iconId).iconId },
-              ]
+            ? [{ color: null, iconId: firstIcon }, { color: null, iconId: secondIcon }]
             : [
-                { color: "red", iconId: objs[0].iconId },
-                { color: "blue", iconId: objs[0].iconId },
-                { color: "red", iconId: objs.find((o) => o.iconId !== objs[0].iconId).iconId },
-                { color: "blue", iconId: objs.find((o) => o.iconId !== objs[0].iconId).iconId },
+                { color: "red", iconId: firstIcon },
+                { color: "blue", iconId: firstIcon },
+                { color: "red", iconId: secondIcon },
+                { color: "blue", iconId: secondIcon },
               ];
+
       for (const def of defs) {
         const box = { ...def, el: document.createElement("button") };
         box.el.type = "button";
-        const tag =
-          rule === "color"
-            ? COLOR_LABELS[def.color].join(" ")
-            : rule === "shape"
-              ? "🧸 Bu hayvan"
-              : `${COLOR_LABELS[def.color][0]} Bu hayvan`;
-        box.el.style.cssText = "min-width:120px;min-height:130px;font-size:0.9rem;display:flex;flex-direction:column;gap:6px;align-items:center";
-        if (rule !== "shape") {
+        box.el.style.cssText =
+          "flex:1;max-width:220px;min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:10px";
+        // kutu başlığı: renk kuralında düz renkli rozet (bozuk img yok), şekil kuralında örnek ikon
+        const head = document.createElement("span");
+        if (rule === "color") {
+          head.style.cssText = `width:44px;aspect-ratio:1;border-radius:50%;background:${COLORS[def.color].css};border:4px solid #fff;box-shadow:0 0 0 3px ${COLORS[def.color].css}`;
+        } else {
           const img = document.createElement("img");
           img.src = ICON_URL(def.iconId);
           img.alt = "";
           img.draggable = false;
-          img.style.cssText = `width:44px;height:44px;object-fit:contain;${def.color ? COLOR_FILTERS[def.color] : ""}`;
-          box.el.append(img);
-        } else {
-          const g = document.createElement("span");
-          g.textContent = "🧸";
-          g.style.fontSize = "2rem";
-          box.el.append(g);
+          img.style.cssText = "width:48px;height:48px;object-fit:contain";
+          head.append(img);
+          head.style.display = "block";
         }
         const label = document.createElement("span");
-        label.textContent = tag;
-        box.el.append(label);
+        label.style.fontSize = "0.95rem";
+        label.style.fontWeight = "800";
+        label.textContent =
+          rule === "color"
+            ? COLORS[def.color].label
+            : rule === "shape"
+              ? "Bu hayvan/nesne"
+              : `${COLORS[def.color].glyph} Bu renk`;
+        box.el.append(head, label);
         box.el.addEventListener("click", () => tap.pickTarget(box.el));
         boxRow.append(box.el);
         boxes.push(box);
       }
 
-      // nesneler
-      objRow.replaceChildren();
-      for (const obj of objs) {
-        const b = document.createElement("button");
-        b.type = "button";
-        b.dataset.color = obj.color;
-        b.dataset.icon = obj.iconId;
-        b.setAttribute("aria-label", "nesne");
-        b.style.cssText = "width:72px;height:72px;padding:6px;display:flex;align-items:center;justify-content:center";
-        const img = document.createElement("img");
-        img.src = ICON_URL(obj.iconId);
-        img.alt = "";
-        img.draggable = false;
-        img.style.cssText = `width:100%;height:100%;object-fit:contain;${COLOR_FILTERS[obj.color]}`;
-        b.append(img);
-        cleanups.push(
-          enableDrag(b, {
-            getTargets: () => boxes.map((x) => x.el),
-            onDrop: (boxEl) => tryBox(boxEl, b),
-          }),
-        );
-        b.addEventListener("click", () => tap.pickItem(b));
-        objRow.append(b);
-      }
+      objGrid.replaceChildren();
+      for (const obj of objs) objGrid.append(makeObjectButton(obj));
     }
 
-    container.append(ruleBanner, boxRow, objRow);
+    container.append(ruleBanner, boxRow, objGrid);
     startRound();
 
     return {

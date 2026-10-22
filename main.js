@@ -21,12 +21,14 @@ const GAMES = [
 ];
 
 const CATEGORIES = [
-  ["all", t("home.category.all")],
-  ["memory", t("home.category.memory")],
-  ["logic", t("home.category.logic")],
-  ["math", t("home.category.math")],
-  ["language", t("home.category.language")],
+  ["all", t("home.category.all"), "var(--surface)"],
+  ["memory", t("home.category.memory"), "#fde2e4"],
+  ["logic", t("home.category.logic"), "#e0e7ff"],
+  ["math", t("home.category.math"), "#fef3c7"],
+  ["language", t("home.category.language"), "#d1fae5"],
 ];
+
+const CARD_COLORS = { memory: "#fecdd3", logic: "#c7d2fe", math: "#fde68a", language: "#a7f3d0" };
 
 function render() {
   const cards = document.getElementById("cards");
@@ -34,12 +36,13 @@ function render() {
   for (const g of GAMES.filter((g) => filter === "all" || g.category === filter)) {
     const card = document.createElement("button");
     card.type = "button";
-    card.style.cssText = "display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px";
+    card.style.cssText = `height:190px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:12px;background:${CARD_COLORS[g.category]}`;
     const icon = document.createElement("span");
     icon.textContent = g.icon;
-    icon.style.fontSize = "3rem";
+    icon.style.cssText = "font-size:2.8rem;line-height:1";
     const name = document.createElement("strong");
     name.textContent = g.name;
+    name.style.textAlign = "center";
     const age = document.createElement("span");
     age.textContent = g.age;
     age.style.color = "var(--muted)";
@@ -60,10 +63,12 @@ function render() {
 
 document.getElementById("title").textContent = t("app.title");
 const nav = document.getElementById("filters");
-for (const [id, label] of CATEGORIES) {
+for (const [id, label, color] of CATEGORIES) {
   const b = document.createElement("button");
   b.type = "button";
   b.textContent = label;
+  b.style.minHeight = "44px";
+  b.style.background = color;
   b.addEventListener("click", () => {
     filter = id;
     render();
@@ -71,4 +76,5 @@ for (const [id, label] of CATEGORIES) {
   nav.append(b);
 }
 initAudio(); // G-9: ilk dokunuşta ses kilidi açılır
+document.getElementById("loading")?.remove();
 render();

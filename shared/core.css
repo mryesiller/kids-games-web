@@ -81,6 +81,32 @@ button.success { background: var(--success); border-color: var(--success); color
 .stars { font-size: 2rem; letter-spacing: 4px; color: var(--star); }
 .stars .off { color: var(--border); }
 
+/* Yükleme geçişi: oyun modülü yüklenene kadar boş ekran yerine iskelet */
+.loading {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-direction: column;
+  color: var(--muted);
+  font-size: 1.1rem;
+  background: var(--bg);
+  z-index: 5;
+}
+.loading .spinner {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 6px solid var(--border);
+  border-top-color: var(--accent);
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 /* Kart ızgarası (ana sayfa, memory) */
 .grid {
   display: grid;

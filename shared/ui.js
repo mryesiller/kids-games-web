@@ -34,6 +34,44 @@ export function starsEl(stars) {
 }
 
 /**
+ * Başlatma overlay'i: talimat + büyük Başla butonu; arka fon silik kalır.
+ * Anlık gösterim gereken oyunlar (memory, simon) için: çocuk talimatı okur,
+ * Başla'ya basınca overlay kalkar ve gösterim süresi başlar.
+ * @param {{ instruction: string, icon?: string, buttonText?: string, onStart: () => void }} opts
+ */
+export function showStartOverlay({ instruction, icon = "", buttonText = "Başla!", onStart }) {
+  const overlay = document.createElement("div");
+  overlay.className = "start-overlay";
+  overlay.style.cssText =
+    "position:fixed;inset:0;background:rgb(255 255 255 / 0.75);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;z-index:20";
+  const card = document.createElement("div");
+  card.className = "pop";
+  card.style.cssText =
+    "background:var(--surface);border-radius:24px;padding:28px 24px;text-align:center;box-shadow:var(--shadow);max-width:min(90vw,420px)";
+  if (icon) {
+    const ic = document.createElement("div");
+    ic.textContent = icon;
+    ic.style.fontSize = "3.5rem";
+    card.append(ic);
+  }
+  const inst = document.createElement("p");
+  inst.textContent = instruction;
+  inst.style.cssText = "font-size:1.25rem;font-weight:700;margin:10px 0 18px";
+  const btn = document.createElement("button");
+  btn.className = "primary";
+  btn.textContent = `▶ ${buttonText}`;
+  btn.style.fontSize = "1.4rem";
+  btn.addEventListener("click", () => {
+    overlay.remove();
+    onStart();
+  });
+  card.append(inst, btn);
+  overlay.append(card);
+  document.body.append(overlay);
+  return overlay;
+}
+
+/**
  * Kazanma ekranı (G-6 cezasız): yıldız + Tekrar Oyna (+ varsa Sonraki Seviye).
  * @param {{ stars: number, onAgain: () => void, onNext?: () => void }} opts
  */
