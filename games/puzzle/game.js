@@ -81,10 +81,12 @@ export default {
     });
 
     function tryPlace(piece, slot) {
+      if (!piece.isConnected) return;
       if (slot.children.length > 0) return;
+      const visual = piece.firstChild; // parçanın görselini taşıyan iç öğe
       if (Number(piece.dataset.piece) === Number(slot.dataset.slot)) {
         slot.textContent = "";
-        slot.append(piece.firstChild); // parça görseli yerleşir
+        slot.append(visual); // parça görseli yerleşir
         piece.remove();
         placed += 1;
         sfx.correct();
@@ -106,7 +108,11 @@ export default {
       piece.type = "button";
       piece.dataset.piece = idx;
       piece.setAttribute("aria-label", `parça ${idx + 1}`);
-      piece.style.cssText = `aspect-ratio:1;padding:0;border-width:2px;overflow:hidden;background-image:url(${picture});background-size:${n * 100}% ${n * 100}%;background-position:${(idx % n) * (100 / (n - 1))}% ${Math.floor(idx / n) * (100 / (n - 1))}%`;
+      piece.style.cssText = "aspect-ratio:1;padding:0;overflow:hidden;display:block";
+      // görsel butonun içindeki öğede taşınır — tryPlace bu çocuğu yuvaya taşıyor
+      const visual = document.createElement("span");
+      visual.style.cssText = `display:block;width:100%;height:100%;background-image:url(${picture});background-size:${n * 100}% ${n * 100}%;background-position:${(idx % n) * (100 / (n - 1))}% ${Math.floor(idx / n) * (100 / (n - 1))}%`;
+      piece.append(visual);
       const row = Math.floor(idx / n);
       const col = idx % n;
       cleanups.push(
