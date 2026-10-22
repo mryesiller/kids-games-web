@@ -15,13 +15,31 @@ export function enableDrag(el, { onDrop, getTargets }) {
   let offsetX = 0;
   let offsetY = 0;
   let active = false;
+  let dragged = false; // gerçek sürükleme olduysa takip eden click'i yut
 
+  // Dokunmatikte pan/zoom jesti pointercancel üretir → sürükleme asla başlamaz (G-3).
+  el.style.touchAction = "none";
+
+  // Sürükleme sonrası tek seferlik click yakalayıcı (dokun-seç modunu tetiklemesin)
+  const swallowClick = (e) => {
+    if (dragged) {
+      e.stopImmediatePropagation();
+      e.preventDefault();
+      dragged = false;
+    }
+  };
+  el.addEventListener("click", swallowClick, true);
+
+  let startX = 0;
+  let startY = 0;
   const onPointerDown = (e) => {
     if (e.button !== undefined && e.button !== 0) return;
     active = true;
+    dragged = false;
+    startX = e.clientX;
+    startY = e.clientY;
     const r = el.getBoundingClientRect();
-    const pr = e.clientX;
-    offsetX = pr - r.left;
+    offsetX = e.clientX - r.left;
     offsetY = e.clientY - r.top;
     ghost = el.cloneNode(true);
     ghost.style.cssText = `position:fixed;z-index:100;pointer-events:none;width:${r.width}px;height:${r.height}px;left:${e.clientX - offsetX}px;top:${e.clientY - offsetY}px;opacity:0.85;transform:scale(1.05)`;
@@ -32,6 +50,7 @@ export function enableDrag(el, { onDrop, getTargets }) {
 
   const onPointerMove = (e) => {
     if (!active || !ghost) return;
+    if (!dragged && Math.hypot(e.clientX - startX, e.clientY - startY) > 6) dragged = true;
     ghost.style.left = `${e.clientX - offsetX}px`;
     ghost.style.top = `${e.clientY - offsetY}px`;
   };
@@ -59,6 +78,8 @@ export function enableDrag(el, { onDrop, getTargets }) {
     el.removeEventListener("pointermove", onPointerMove);
     el.removeEventListener("pointerup", onPointerUp);
     el.removeEventListener("pointercancel", onPointerUp);
+    el.removeEventListener("click", swallowClick, true);
+    el.style.touchAction = "";
     ghost?.remove();
   };
 }

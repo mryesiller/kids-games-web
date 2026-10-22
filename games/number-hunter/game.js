@@ -49,13 +49,20 @@ export default {
 
     const statusEl = document.createElement("div");
     statusEl.className = "hint";
+    statusEl.style.fontSize = "1.1rem";
+
+    // Büyük soru şeridi: çocuk için tek net gösterim
+    const questionEl = document.createElement("div");
+    questionEl.setAttribute("role", "status");
+    questionEl.style.cssText =
+      "font-size:clamp(2.6rem,11vw,4.2rem);font-weight:900;text-align:center;color:var(--fg);letter-spacing:2px";
 
     const wrap = document.createElement("div");
     wrap.style.cssText = "position:relative;width:min(96vw,560px);flex:1;max-height:70vh";
     const canvas = document.createElement("canvas");
     canvas.style.cssText = "width:100%;height:100%;touch-action:none;display:block";
     wrap.append(canvas);
-    container.append(opRow, wrap, statusEl);
+    container.append(opRow, questionEl, wrap, statusEl);
 
     let W = 0;
     let H = 0;
@@ -87,7 +94,8 @@ export default {
 
     function newQuestion() {
       question = makeQuestion(level);
-      statusEl.textContent = `${correctCount} / ${TARGET_CORRECT}  ·  ${question.text}`;
+      questionEl.textContent = question.text; // "1 + 4 = ?" — büyük ve tek
+      statusEl.textContent = `🎈 ${correctCount} / ${TARGET_CORRECT}`;
       distributeAnswers();
     }
 
@@ -166,7 +174,7 @@ export default {
           if (Number(b.label) === question.answer) {
             correctCount += 1;
             sfx.correct();
-            statusEl.textContent = `${correctCount} / ${TARGET_CORRECT}  ·  ${question.text}`;
+            statusEl.textContent = `🎈 ${correctCount} / ${TARGET_CORRECT}`;
             if (correctCount >= TARGET_CORRECT) {
               cancelAnimationFrame(raf);
               onWin({ stars: starsFromCorrect(correctCount, TARGET_CORRECT) });

@@ -42,7 +42,7 @@ export function bootGame(game, opts = {}) {
         showWinOverlay({
           stars,
           onAgain: () => run(),
-          onNext: level < 3 ? (() => { level += 1; run(); }) : undefined,
+          onNext: level < (game.maxLevel ?? 3) ? (() => { level += 1; run(); }) : undefined,
         });
       },
       onExit: () => { window.location.href = "../../index.html"; },

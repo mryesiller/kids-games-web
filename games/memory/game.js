@@ -5,9 +5,13 @@ import { shuffled, starsFromMoves } from "../../shared/difficulty.js";
 import { sfx } from "../../shared/audio.js";
 import { ICON_URL, ICON_COUNT } from "../../shared/icons.js";
 
-/** Seviye → çift sayısı (PRD O1: 3 / 6 / 10 çift). */
-const PAIRS_BY_LEVEL = { 1: 3, 2: 6, 3: 10 };
-const OPTIMAL_MOVES = { 1: 3, 2: 6, 3: 10 }; // optimal = çift sayısı (alt sınır)
+/** Seviye → çift sayısı: bölüm geçtikçe kare sayısı artar (6 → 8 → 12 → 16 → 20 kart). */
+const PAIRS_BY_LEVEL = { 1: 3, 2: 4, 3: 6, 4: 8, 5: 10 };
+const OPTIMAL_MOVES = { 1: 3, 2: 4, 3: 6, 4: 8, 5: 10 }; // optimal = çift sayısı (alt sınır)
+const PREVIEW_MS = 1000; // başlamadan önce tüm kartlar 1 sn açık gösterilir
+const COLUMNS_BY_PAIRS = { 3: 3, 4: 4, 6: 4, 8: 4, 10: 5 };
+
+export const MAX_LEVEL = 5;
 
 export function deal(pairs, rng = Math.random) {
   const ids = Array.from({ length: pairs }, (_, i) => (i % ICON_COUNT) + 1);
@@ -19,19 +23,20 @@ export function deal(pairs, rng = Math.random) {
 
 export default {
   id: "memory",
+  maxLevel: MAX_LEVEL,
   /** @returns {{destroy: () => void}} */
   start(container, { level, onWin }) {
     const pairs = PAIRS_BY_LEVEL[level] ?? PAIRS_BY_LEVEL[1];
     const deck = deal(pairs);
     let first = null; // açık ilk kart
-    let lock = false; // yanlış eşleşme bekleme kilidi
+    let lock = true; // önizleme bitene kadar kilitli
     let matched = 0;
     let moves = 0;
     const timers = [];
 
     const grid = document.createElement("div");
     grid.className = "grid";
-    grid.style.gridTemplateColumns = `repeat(${pairs <= 3 ? 3 : pairs <= 6 ? 4 : 5}, 1fr)`;
+    grid.style.gridTemplateColumns = `repeat(${COLUMNS_BY_PAIRS[pairs] ?? 4}, 1fr)`;
 
     const movesEl = document.createElement("div");
     movesEl.className = "hint";
@@ -109,6 +114,15 @@ export default {
       card.addEventListener("pointerdown", fn);
     }
     container.append(movesEl, grid);
+
+    // Önizleme: tüm kartlar 1 sn açık gösterilir, sonra kapanır ve oyun başlar
+    cards.forEach(flipUp);
+    timers.push(
+      setTimeout(() => {
+        cards.forEach(flipDown);
+        lock = false;
+      }, PREVIEW_MS),
+    );
 
     return {
       pause() {
