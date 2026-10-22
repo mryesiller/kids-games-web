@@ -3,6 +3,7 @@
 // Örüntü öğeleri: Higgsfield hayvan ikonları (kid-friendly, memory ile paylaşılan set).
 import { starsFromCorrect } from "../../shared/difficulty.js";
 import { ICON_URL, ICON_COUNT } from "../../shared/icons.js";
+import { sfx } from "../../shared/audio.js";
 
 export const QUESTION_COUNT = 10;
 export const MAX_LEVEL = 20;
