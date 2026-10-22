@@ -1,5 +1,7 @@
 # kids-games-web — Zeka Oyunları
 
+**Canlı:** https://mryesiller.github.io/kids-games-web/ · Repo: https://github.com/mryesiller/kids-games-web (GitHub Actions ile otomatik deploy: push → build + check → Pages)
+
 5-10 yaş çocuklar için reklamsız, girişsiz, kurulumsuz 10 mini oyun. Statik site (Vite MPA, vanilla JS, PWA).
 
 PRD: `../../../../01_Requirements_and_Scope/PRD_KidsGamesWeb.md` · Görev planı: `../../../../05_Documentation_and_Guides/TASK_PLAN_KidsGamesWeb.md`
