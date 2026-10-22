@@ -109,12 +109,24 @@ export default {
     }
 
     function distributeAnswers() {
-      // doğru cevap tam 1 balonda; diğerlerine yalnız çeldiriciler (cevap tekrar etmez)
-      const distractors = question.options.filter((v) => v !== question.answer);
+      // doğru cevap tam 1 balonda; diğer 7 balona tekrarsız çeldiriciler
+      const labels = new Set([question.answer]);
+      let d = 1;
+      while (labels.size < POOL) {
+        labels.add(Math.max(0, question.answer + (d % 2 === 0 ? d / 2 : -((d - 1) / 2))));
+        labels.add(Math.max(0, question.answer + Math.ceil(d / 2)));
+        d += 1;
+        if (d > 12) { // güvence: geniş aralık
+          let x = 20;
+          while (labels.size < POOL) labels.add(x++);
+        }
+      }
+      labels.delete(question.answer);
+      const distractors = [...labels].slice(0, POOL - 1);
       const idx = Math.floor(Math.random() * POOL);
-      let d = 0;
+      let k = 0;
       balloons.forEach((b, i) => {
-        b.label = String(i === idx ? question.answer : distractors[d++ % distractors.length]);
+        b.label = String(i === idx ? question.answer : distractors[k++]);
       });
     }
 
