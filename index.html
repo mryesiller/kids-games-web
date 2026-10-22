@@ -9,6 +9,11 @@
   <body>
     <header style="text-align:center;padding:16px">
       <h1 id="title"></h1>
+      <div id="starbar" style="display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap;margin-bottom:10px">
+        <span id="totalStars" style="font-weight:900;font-size:1.2rem;background:#fef3c7;border-radius:999px;padding:6px 16px" title="Toplam yıldız"></span>
+        <button type="button" id="rewardsBtn" style="min-height:44px">🎁 Ödüller</button>
+        <span id="nextReward" style="color:var(--muted);font-size:0.95rem"></span>
+      </div>
       <nav id="filters" style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"></nav>
     </header>
     <main id="cards" class="grid" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr));padding:16px"></main>

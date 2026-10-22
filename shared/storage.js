@@ -83,6 +83,11 @@ export function setBest(gameId, value) {
   if (v > getBest(gameId)) write(gameId, "best", v);
 }
 
+/** Tüm oyunlardan toplanan toplam yıldız (ödül sistemi için). */
+export function getTotalStars(gameIds) {
+  return (gameIds ?? []).reduce((sum, id) => sum + getStars(id), 0);
+}
+
 /** Ana sayfa kartları için: {stars, level} */
 export function getProgress(gameId) {
   return { stars: getStars(gameId), level: getLevel(gameId) };

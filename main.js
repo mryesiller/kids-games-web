@@ -1,8 +1,9 @@
 // main.js — ana sayfa: oyun kartları + kategori filtresi + yıldız gösterimi (PRD §5)
 import { t } from "./shared/i18n.js";
-import { getProgress } from "./shared/storage.js";
+import { getProgress, getTotalStars } from "./shared/storage.js";
 import { initAudio } from "./shared/audio.js";
 import { starsEl } from "./shared/ui.js";
+import { REWARDS, unlockedRewards, nextReward } from "./shared/rewards.js";
 
 let filter = "all";
 
@@ -10,7 +11,6 @@ let filter = "all";
 const GAMES = [
   { id: "memory", name: "Hafıza Kartları", icon: "🃏", age: "5-8", category: "memory", ready: true },
   { id: "odd-one-out", name: "Farklı Olanı Bul", icon: "🔍", age: "5-9", category: "logic", ready: true },
-  { id: "puzzle", name: "Yap-Boz", icon: "🧩", age: "5-10", category: "logic", ready: true },
   { id: "number-hunter", name: "Sayı Avcısı", icon: "🎈", age: "6-10", category: "math", ready: true },
   { id: "pattern", name: "Örüntü Tamamla", icon: "🔗", age: "5-10", category: "logic", ready: true },
   { id: "letter-fish", name: "Kelime Tamamla", icon: "🐟", age: "6-9", category: "language", ready: true },
@@ -18,6 +18,11 @@ const GAMES = [
   { id: "sorter", name: "Ayıklayıcı", icon: "🧺", age: "5-7", category: "logic", ready: true },
   { id: "hanoi", name: "Hanoi Kuleleri", icon: "🗼", age: "7-10", category: "logic", ready: true },
   { id: "simon", name: "Simon Diyor ki", icon: "🎵", age: "5-10", category: "memory", ready: true },
+  { id: "counting", name: "Say Bak", icon: "🔢", age: "4-6", category: "math", ready: true },
+  { id: "ordering", name: "Sıraya Diz", icon: "📊", age: "5-8", category: "math", ready: true },
+  { id: "shadow", name: "Gölge Eşleştir", icon: "👤", age: "4-7", category: "logic", ready: true },
+  { id: "bigger", name: "Hangisi Büyük", icon: "⚖️", age: "5-8", category: "math", ready: true },
+  { id: "missing-number", name: "Eksik Sayı", icon: "❓", age: "5-9", category: "math", ready: true },
 ];
 
 const CATEGORIES = [
@@ -82,6 +87,60 @@ for (const [id, label, color] of CATEGORIES) {
   });
   nav.append(b);
 }
+function refreshStars() {
+  const total = getTotalStars(GAMES.filter((g) => g.ready).map((g) => g.id));
+  document.getElementById("totalStars").textContent = `⭐ ${total}`;
+  const next = nextReward(total);
+  document.getElementById("nextReward").textContent = next
+    ? `Sıradaki ödül: ${next.icon} ${next.name} (${total}/${next.cost} ⭐)`
+    : "Tüm ödüller açık! 🎉";
+  return total;
+}
+
+function showRewards() {
+  const total = refreshStars();
+  const unlocked = new Set(unlockedRewards(total).map((r) => r.id));
+  const overlay = document.createElement("div");
+  overlay.style.cssText =
+    "position:fixed;inset:0;background:rgb(0 0 0 / 0.4);z-index:30;display:flex;align-items:center;justify-content:center;padding:16px";
+  const panel = document.createElement("div");
+  panel.style.cssText =
+    "background:var(--bg);border-radius:24px;padding:20px;max-width:min(94vw,560px);max-height:86vh;overflow:auto";
+  const head = document.createElement("div");
+  head.style.cssText = "display:flex;justify-content:space-between;align-items:center;margin-bottom:12px";
+  head.innerHTML = `<strong style="font-size:1.3rem">🎁 Ödüller · ⭐ ${total}</strong>`;
+  const close = document.createElement("button");
+  close.textContent = "✕";
+  close.style.cssText = "min-width:44px;min-height:44px;padding:4px";
+  close.addEventListener("click", () => overlay.remove());
+  head.append(close);
+  panel.append(head);
+
+  const grid = document.createElement("div");
+  grid.style.cssText = "display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px";
+  for (const r of REWARDS) {
+    const open = unlocked.has(r.id);
+    const cell = document.createElement("div");
+    cell.style.cssText = `border-radius:16px;padding:12px;text-align:center;border:3px solid ${open ? "var(--success)" : "var(--border)"};background:${open ? "#e9f9ef" : "var(--surface)"};opacity:${open ? 1 : 0.72}`;
+    const art = document.createElement("div");
+    art.style.cssText = "font-size:1.9rem;letter-spacing:2px;margin-bottom:6px;filter:" + (open ? "none" : "grayscale(1)");
+    art.textContent = open ? r.art.join(" ") : "🔒";
+    const name = document.createElement("div");
+    name.style.fontWeight = "800";
+    name.textContent = r.name;
+    const cost = document.createElement("div");
+    cost.style.cssText = "font-size:0.9rem;color:var(--muted)";
+    cost.textContent = open ? "Açıldı! ✓" : `⭐ ${r.cost} yıldız gerekli`;
+    cell.append(art, name, cost);
+    grid.append(cell);
+  }
+  panel.append(grid);
+  overlay.append(panel);
+  document.body.append(overlay);
+}
+
+document.getElementById("rewardsBtn").addEventListener("click", showRewards);
 initAudio(); // G-9: ilk dokunuşta ses kilidi açılır
 document.getElementById("loading")?.remove();
+refreshStars();
 render();

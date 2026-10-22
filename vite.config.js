@@ -8,7 +8,6 @@ import { existsSync } from "node:fs";
 const gameIds = [
   "memory",
   "odd-one-out",
-  "puzzle",
   "number-hunter",
   "pattern",
   "letter-fish",
@@ -16,6 +15,11 @@ const gameIds = [
   "sorter",
   "hanoi",
   "simon",
+  "counting",
+  "ordering",
+  "shadow",
+  "bigger",
+  "missing-number",
 ];
 
 export default defineConfig({
