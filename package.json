@@ -1,0 +1,19 @@
+{
+  "name": "kids-games-web",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "check": "vite build && node scripts/check-build.mjs"
+  },
+  "devDependencies": {
+    "jsdom": "^30.1.3",
+    "vite": "^6.0.0",
+    "vite-plugin-pwa": "^2.0.0",
+    "vitest": "^3.0.0"
+  }
+}

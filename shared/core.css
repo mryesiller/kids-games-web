@@ -1,0 +1,116 @@
+/* core.css — tema, büyük butonlar, responsive kurallar (PRD G-2..G-4, G-10) */
+:root {
+  --bg: #fdf6ec;
+  --surface: #ffffff;
+  --fg: #2d2a26;
+  --muted: #6b6459;
+  --border: #e2d9c8;
+  --accent: #1d6fae;
+  --success: #1e7e46;
+  --warning: #b45309;
+  --error: #c0392b;
+  --star: #b45309;
+  --radius: 16px;
+  --shadow: 0 4px 12px rgb(0 0 0 / 0.08);
+  /* G-4: minimum dokunma hedefi */
+  --tap: 48px;
+  --gap: 8px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: var(--fg);
+  background: var(--bg);
+  /* G-3: istenmeyen zoom/kayma engeli */
+  touch-action: manipulation;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+button, .btn {
+  min-width: var(--tap);
+  min-height: var(--tap);
+  padding: 10px 20px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--fg);
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
+button:active { transform: scale(0.97); }
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+button.success { background: var(--success); border-color: var(--success); color: #fff; }
+
+/* G-10: odak görünür */
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* G-10: hareket azaltma tercihi */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Oyun alanı: ekrana sığar, yatay kaydırma yok (G-2) */
+#game {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: var(--gap);
+  overflow: hidden;
+}
+
+/* Yıldızlar (ui.js) */
+.stars { font-size: 2rem; letter-spacing: 4px; color: var(--star); }
+.stars .off { color: var(--border); }
+
+/* Kart ızgarası (ana sayfa, memory) */
+.grid {
+  display: grid;
+  gap: var(--gap);
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+/* Basit shake: yanlış cevap geri bildirimi (G-6) */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+.shake { animation: shake 0.3s ease; }
+
+@keyframes pop {
+  from { transform: scale(0.6); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.pop { animation: pop 0.25s ease; }
+
+/* Yönerge şeridi (G-5) */
+.hint {
+  display: flex;
+  align-items: center;
+  gap: var(--gap);
+  padding: var(--gap);
+  font-size: 1.05rem;
+  color: var(--muted);
+  justify-content: center;
+}
