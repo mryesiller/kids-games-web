@@ -7,12 +7,14 @@ import { showStartOverlay } from "../../shared/ui.js";
 
 export const TARGET_ROUND = 10; // 10 tur tamamlanınca kazanma
 
-/** Seviye → ped sayısı ve gösterim hızı (ms). */
-export const LEVELS = {
-  1: { pads: 4, showMs: 620 },
-  2: { pads: 4, showMs: 380 },
-  3: { pads: 6, showMs: 500 },
-};
+/** Seviye → ped sayısı ve gösterim hızı (20 seviye: hız artar, 11+ 6 ped). */
+export function configFor(level) {
+  return {
+    pads: level <= 10 ? 4 : 6,
+    showMs: Math.max(320, 640 - level * 16),
+  };
+}
+export const LEVELS = { 1: configFor(1), 2: configFor(2), 3: configFor(3) };
 
 export const NOTES = [261.6, 329.6, 392.0, 523.3, 659.3, 784.0]; // C E G C E G
 const PAD_STYLES = [
@@ -40,8 +42,9 @@ export function starsFromRounds(rounds) {
 
 export default {
   id: "simon",
+  maxLevel: 20,
   start(container, { level, onWin }) {
-    const { pads: padCount, showMs } = LEVELS[level] ?? LEVELS[1];
+    const { pads: padCount, showMs } = configFor(level);
     let seq = [];
     let inputIndex = 0; // kullanıcının doğrulama konumu
     let showing = false;

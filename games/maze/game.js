@@ -7,8 +7,9 @@ const FOX_SRC = new URL("./assets/fox.webp", import.meta.url).href;
 
 export default {
   id: "maze",
+  maxLevel: 20,
   start(container, { level, onWin }) {
-    const n = { 1: 5, 2: 8, 3: 12 }[level] ?? 5;
+    const n = 5 + Math.floor(((Math.min(level, 20) - 1) * 7) / 19); // 5×5 → 12×12, 20 seviye
     const walls = generateMaze(n);
     const optimal = solveMaze(walls).length - 1;
     let pos = [0, 0];

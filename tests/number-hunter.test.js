@@ -46,7 +46,7 @@ describe("number-hunter soru üreteci (PRD O4)", () => {
     }
   });
 
-  it("10 doğru = kazanma hedefi", () => {
-    expect(TARGET_CORRECT).toBe(10);
+  it("5 doğru = kazanma hedefi", () => {
+    expect(TARGET_CORRECT).toBe(5);
   });
 });

@@ -6,7 +6,7 @@ import { starsFromWrong } from "../../shared/drag-helpers.js";
 import { PICTURES } from "./pictures.js";
 import { sfx } from "../../shared/audio.js";
 
-const GRID_BY_LEVEL = { 1: 2, 2: 3, 3: 4 };
+const GRID_BY_LEVEL = (level) => 2 + Math.min(2, Math.floor((level - 1) / 6)); // 20 seviye: 2x2 → 4x4
 
 export function slotIndexForPiece(n, row, col) {
   return row * n + col;
@@ -14,8 +14,9 @@ export function slotIndexForPiece(n, row, col) {
 
 export default {
   id: "puzzle",
+  maxLevel: 20,
   start(container, { level, onWin }) {
-    const n = GRID_BY_LEVEL[level] ?? GRID_BY_LEVEL[1];
+    const n = GRID_BY_LEVEL(level);
     const picture = PICTURES[Math.floor(Math.random() * PICTURES.length)];
     let wrongDrops = 0;
     let placed = 0;

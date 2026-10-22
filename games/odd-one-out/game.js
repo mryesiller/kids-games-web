@@ -5,6 +5,7 @@ import { starsFromCorrect } from "../../shared/difficulty.js";
 import { ICON_URL, ICON_COUNT } from "../../shared/icons.js";
 
 export const ROUNDS = 10;
+export const MAX_LEVEL = 20;
 
 /**
  * Bir tur üret: {items: [{src, css, isOdd}], oddIndex}
@@ -35,8 +36,11 @@ export function makeRounds(level, rng = Math.random) {
 
 export default {
   id: "odd-one-out",
+  maxLevel: MAX_LEVEL,
   start(container, { level, onWin }) {
-    const rounds = makeRounds(level);
+    // 20 seviye: 1-7 büyük fark (şekil), 8-14 ton, 15-20 dönüş
+    const diff = level <= 7 ? 1 : level <= 14 ? 2 : 3;
+    const rounds = makeRounds(diff);
     let current = 0;
     let correct = 0;
 

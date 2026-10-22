@@ -13,7 +13,7 @@ const GAMES = [
   { id: "puzzle", name: "Yap-Boz", icon: "🧩", age: "5-10", category: "logic", ready: true },
   { id: "number-hunter", name: "Sayı Avcısı", icon: "🎈", age: "6-10", category: "math", ready: true },
   { id: "pattern", name: "Örüntü Tamamla", icon: "🔗", age: "5-10", category: "logic", ready: true },
-  { id: "letter-fish", name: "Harf Balıkları", icon: "🐟", age: "6-9", category: "language", ready: true },
+  { id: "letter-fish", name: "Kelime Tamamla", icon: "🐟", age: "6-9", category: "language", ready: true },
   { id: "maze", name: "Labirent Kaşifi", icon: "🌀", age: "6-10", category: "logic", ready: true },
   { id: "sorter", name: "Ayıklayıcı", icon: "🧺", age: "5-7", category: "logic", ready: true },
   { id: "hanoi", name: "Hanoi Kuleleri", icon: "🗼", age: "7-10", category: "logic", ready: true },
@@ -51,7 +51,14 @@ function render() {
       const { stars } = getProgress(g.id);
       if (stars > 0) card.append(starsEl(stars));
       card.addEventListener("click", () => {
-        window.location.href = `./games/${g.id}/index.html`;
+        // blink fix: geçiş overlay'i senkron görünür olur, sonra navigasyon
+        const overlay = document.createElement("div");
+        overlay.className = "loading";
+        overlay.innerHTML = '<span class="spinner"></span><span>Yükleniyor...</span>';
+        document.body.append(overlay);
+        setTimeout(() => {
+          window.location.href = `./games/${g.id}/index.html`;
+        }, 30);
       });
     } else {
       card.disabled = true;

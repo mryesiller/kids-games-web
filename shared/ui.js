@@ -82,26 +82,29 @@ export function showWinOverlay({ stars, onAgain, onNext }) {
   overlay.style.cssText =
     "position:fixed;inset:0;background:rgb(0 0 0 / 0.35);display:flex;align-items:center;justify-content:center;z-index:10";
   const card = document.createElement("div");
+  card.className = "pop";
   card.style.cssText =
-    "background:var(--surface);border-radius:var(--radius);padding:24px;text-align:center;box-shadow:var(--shadow)";
+    "background:var(--surface);border-radius:24px;padding:28px;display:flex;flex-direction:column;align-items:center;gap:14px;box-shadow:var(--shadow);max-width:min(90vw,420px);min-width:min(70vw,300px)";
   card.append(starsEl(stars));
   const again = document.createElement("button");
   again.className = "primary";
   again.textContent = t("game.again");
+  again.style.cssText = "width:100%;font-size:1.2rem";
   again.addEventListener("click", () => {
     overlay.remove();
     onAgain();
   });
-  card.append(document.createElement("br"), again);
+  card.append(again);
   if (onNext) {
     const next = document.createElement("button");
     next.className = "success";
     next.textContent = t("game.next");
+    next.style.cssText = "width:100%;font-size:1.2rem";
     next.addEventListener("click", () => {
       overlay.remove();
       onNext();
     });
-    card.append(document.createElement("br"), next);
+    card.append(next);
   }
   overlay.append(card);
   document.body.append(overlay);

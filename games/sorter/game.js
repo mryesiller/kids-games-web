@@ -30,8 +30,9 @@ export function makeObjects(roundIndex, rng = Math.random) {
 }
 
 export function ruleFor(level, roundIndex) {
-  if (level === 1) return "color";
-  if (level === 2) return roundIndex % 2 === 0 ? "color" : "shape";
+  // 20 seviye: 1-6 renk, 7-13 kural değişimi, 14-20 iki kural
+  if (level <= 6) return "color";
+  if (level <= 13) return roundIndex % 2 === 0 ? "color" : "shape";
   return "both";
 }
 
@@ -43,6 +44,7 @@ export function accepts(rule, obj, box) {
 
 export default {
   id: "sorter",
+  maxLevel: 20,
   start(container, { level, onWin }) {
     const ROUNDS = 3;
     let round = 0;

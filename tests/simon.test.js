@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { nextSequence, checkInput, starsFromRounds, LEVELS, NOTES, TARGET_ROUND } from "../games/simon/game.js";
+import { nextSequence, checkInput, starsFromRounds, LEVELS, configFor, NOTES, TARGET_ROUND } from "../games/simon/game.js";
 
 describe("simon mantığı (PRD O10)", () => {
   it("dizi her turda tam 1 uzar ve ped aralığında kalır", () => {
@@ -22,10 +22,12 @@ describe("simon mantığı (PRD O10)", () => {
     expect(checkInput(seq, 2, 0)).toBe(false); // 1 beklenir
   });
 
-  it("ped sayısı seviyeye göre: 4/4/6, nota her ped için tanımlı", () => {
+  it("ped sayısı seviyeye göre: 1-10 arası 4, 11+ 6 ped; nota her ped için tanımlı", () => {
     expect(LEVELS[1].pads).toBe(4);
     expect(LEVELS[2].pads).toBe(4);
-    expect(LEVELS[3].pads).toBe(6);
+    expect(LEVELS[3].pads).toBe(4);
+    expect(configFor(11).pads).toBe(6);
+    expect(configFor(20).showMs).toBeLessThan(configFor(1).showMs);
     expect(NOTES).toHaveLength(6);
   });
 

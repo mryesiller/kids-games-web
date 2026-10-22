@@ -6,13 +6,13 @@ import { sfx } from "../../shared/audio.js";
 import { ICON_URL, ICON_COUNT } from "../../shared/icons.js";
 import { showStartOverlay } from "../../shared/ui.js";
 
-/** Seviye → çift sayısı: bölüm geçtikçe kare sayısı artar (6 → 8 → 12 → 16 → 20 kart). */
-const PAIRS_BY_LEVEL = { 1: 3, 2: 4, 3: 6, 4: 8, 5: 10 };
-const OPTIMAL_MOVES = { 1: 3, 2: 4, 3: 6, 4: 8, 5: 10 }; // optimal = çift sayısı (alt sınır)
+/** Seviye → çift sayısı: 20 seviye, kademeli artar (6 → 20 kart). */
+const PAIRS_BY_LEVEL = (level) => Math.min(10, 2 + Math.floor((level - 1) / 2) + (level > 1 ? 1 : 0));
+const OPTIMAL_MOVES = PAIRS_BY_LEVEL;
 const PREVIEW_MS = 3000; // Başla'ya basınca tüm kartlar 3 sn açık gösterilir (ezber süresi)
-const COLUMNS_BY_PAIRS = { 3: 3, 4: 4, 6: 4, 8: 4, 10: 5 };
+const COLUMNS_BY_PAIRS = { 2: 2, 3: 3, 4: 4, 5: 4, 6: 4, 7: 4, 8: 4, 9: 5, 10: 5 };
 
-export const MAX_LEVEL = 5;
+export const MAX_LEVEL = 20;
 
 export function deal(pairs, rng = Math.random) {
   // havuzdan rastgele `pairs` farklı ikon seç (çeşitlilik: 22 ikon)
@@ -29,7 +29,7 @@ export default {
   maxLevel: MAX_LEVEL,
   /** @returns {{destroy: () => void}} */
   start(container, { level, onWin }) {
-    const pairs = PAIRS_BY_LEVEL[level] ?? PAIRS_BY_LEVEL[1];
+    const pairs = PAIRS_BY_LEVEL(level);
     const deck = deal(pairs);
     let first = null; // açık ilk kart
     let lock = true; // önizleme bitene kadar kilitli
@@ -89,7 +89,7 @@ export default {
         matched += 1;
         sfx.correct();
         if (matched === pairs) {
-          timers.push(setTimeout(() => onWin({ stars: starsFromMoves(moves, OPTIMAL_MOVES[pairs]) }), 400));
+          timers.push(setTimeout(() => onWin({ stars: starsFromMoves(moves, OPTIMAL_MOVES(pairs)) }), 400));
         }
       } else {
         lock = true;

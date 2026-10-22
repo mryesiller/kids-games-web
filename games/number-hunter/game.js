@@ -17,6 +17,7 @@ const SPRITES = Object.entries(spriteMods)
 
 export default {
   id: "number-hunter",
+  maxLevel: 20,
   start(container, { level, onWin }) {
     const allowed = opsForLevel(level);
     let op = allowed[0];

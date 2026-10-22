@@ -25,7 +25,7 @@ export function validBlanks(word) {
 /** Soru üret: {word, emoji, blankIndex, answer, options}. Zorluk: min kelime uzunluğu seviyeyle artar.
  * Benzersiz çözüm garantili: benzersiz harfi olmayan kelime atlanır; son kullanılan kelimeler tekrarlanmaz. */
 export function makeQuestion(level, rng = Math.random, usedWords = new Set()) {
-  const minLen = level === 1 ? 3 : level === 2 ? 4 : 5;
+  const minLen = Math.min(6, 3 + Math.floor((level - 1) / 5)); // 20 seviye: 3→6 harf
   const lenPool = WORDS.filter((w) => w.word.length >= minLen);
   let pool = lenPool.filter((w) => !usedWords.has(w.word));
   if (pool.length === 0) pool = lenPool.length > 0 ? lenPool : WORDS;
@@ -54,10 +54,13 @@ export function makeQuestion(level, rng = Math.random, usedWords = new Set()) {
 
 export default {
   id: "letter-fish",
+  maxLevel: 20,
   start(container, { level, onWin }) {
     let current = 0;
     let correct = 0;
+    let locked = false; // 3 sn'lik kelime gösterimi sırasında girişi kilitle
     const usedWords = new Set();
+    const timers = [];
 
     const progress = document.createElement("div");
     progress.className = "hint";
@@ -92,12 +95,25 @@ export default {
         b.style.cssText = "min-width:72px;font-size:1.8rem;color:var(--accent)";
         b.textContent = opt;
         b.addEventListener("pointerdown", () => {
+          if (locked) return;
           if (trEquals(opt, q.answer)) {
+            locked = true;
             correct += 1;
             sfx.correct();
-            current += 1;
-            if (current === TARGET) onWin({ stars: starsFromCorrect(correct) });
-            else showQuestion();
+            sfx.applause();
+            // tamamlanan kelimeyi 3 sn göster: harf yerine oturur + ✓
+            const span = wordRow.children[q.blankIndex];
+            span.textContent = trUpper(q.word[q.blankIndex]);
+            span.style.cssText = "color:var(--success);border-bottom-color:var(--success)";
+            wordRow.append(Object.assign(document.createElement("span"), { textContent: " ✓", style: "color:var(--success)" }));
+            timers.push(
+              setTimeout(() => {
+                locked = false;
+                current += 1;
+                if (current === TARGET) onWin({ stars: starsFromCorrect(correct) });
+                else showQuestion();
+              }, 3000),
+            );
           } else {
             sfx.wrong();
             b.classList.remove("shake");
@@ -117,6 +133,7 @@ export default {
       pause() {},
       resume() {},
       destroy() {
+        timers.forEach(clearTimeout);
         container.replaceChildren();
       },
     };

@@ -68,4 +68,24 @@ export const sfx = {
   correct: () => playTones([523, 659, 784]),
   wrong: () => playTones([220, 180], { duration: 0.15, type: "triangle" }),
   star: () => playTones([659, 784, 1047], { duration: 0.15 }),
+  /** Kısa alkış: rastgele aralıklı gürültü patlamaları (dosya sesi yok). */
+  applause: () => {
+    if (!ctx || muted) return;
+    const duration = 0.9;
+    const buffer = ctx.createBuffer(1, ctx.sampleRate * duration, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+    const src = ctx.createBufferSource();
+    src.buffer = buffer;
+    const band = ctx.createBiquadFilter();
+    band.type = "bandpass";
+    band.frequency.value = 1800;
+    band.Q.value = 0.8;
+    const env = ctx.createGain();
+    env.gain.setValueAtTime(0.001, ctx.currentTime);
+    env.gain.exponentialRampToValueAtTime(0.35, ctx.currentTime + 0.08);
+    env.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+    src.connect(band).connect(env).connect(ctx.destination);
+    src.start();
+  },
 };

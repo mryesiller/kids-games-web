@@ -5,13 +5,14 @@ import { starsFromMoves } from "../../shared/difficulty.js";
 import { createTapSelect } from "../../shared/drag.js";
 import { sfx } from "../../shared/audio.js";
 
-const DISKS_BY_LEVEL = { 1: 3, 2: 4, 3: 5 };
-const DISK_COLORS = ["#e74c3c", "#e67e22", "#f1c40f", "#2ecc71", "#3498db"];
+const DISKS_BY_LEVEL = (level) => Math.min(8, 3 + Math.floor((level - 1) / 3)); // 20 seviye: 3 → 8 disk
+const DISK_COLORS = ["#e74c3c", "#e67e22", "#f1c40f", "#2ecc71", "#3498db", "#9b59b6", "#e91e8c", "#16a085"];
 
 export default {
   id: "hanoi",
+  maxLevel: 20,
   start(container, { level, onWin }) {
-    const disks = DISKS_BY_LEVEL[level] ?? DISKS_BY_LEVEL[1];
+    const disks = DISKS_BY_LEVEL(level);
     let towers = initialTowers(disks);
     let moves = 0;
     let pickedPeg = null; // dokun-seç: seçilen kaynak çubuk

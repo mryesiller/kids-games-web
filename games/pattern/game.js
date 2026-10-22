@@ -5,6 +5,7 @@ import { starsFromCorrect } from "../../shared/difficulty.js";
 import { ICON_URL, ICON_COUNT } from "../../shared/icons.js";
 
 export const QUESTION_COUNT = 10;
+export const MAX_LEVEL = 20;
 
 /** deterministik ikon seçimi: seed tabanlı, tekrar eden çağrıda aynı */
 function pickIcon(seed, exclude = []) {
@@ -65,10 +66,14 @@ function numericOptions(answer, i) {
   return arr;
 }
 
+/** 20 seviye: 5 şablon döngüsü — AB → AAB/ABC → sayı örüntüleri → büyüyen. */
+function kindForLevel(level) {
+  return ["AB", "AAB", "ABC", "arithmetic", "growing"][(level - 1) % 5];
+}
+
 /** Saf üreteci: seviye ve soru indeksinden çözülebilir, TEK doğru cevaplı soru. */
 export function makeQuestion(level, i) {
-  const kinds = { 1: ["AB"], 2: ["AAB", "ABC"], 3: ["arithmetic", "growing"] };
-  const kind = kinds[level][i % kinds[level].length];
+  const kind = kindForLevel(level);
   const q = kind === "arithmetic" || kind === "growing" ? numberQuestion(kind, i) : iconQuestion(kind, i);
   const options = q.options ?? numericOptions(q.answer, i);
   return { kind, shown: q.shown, options, answer: q.answer };
@@ -80,9 +85,12 @@ export function isSolvable(q) {
 
 export default {
   id: "pattern",
+  maxLevel: MAX_LEVEL,
   start(container, { level, onWin }) {
     let current = 0;
     let correct = 0;
+    let locked = false;
+    const timers = [];
 
     const progress = document.createElement("div");
     progress.className = "hint";
@@ -94,6 +102,7 @@ export default {
     opts.style.cssText = "grid-template-columns:repeat(4,1fr);max-width:480px";
 
     function showQuestion() {
+      locked = false;
       const q = makeQuestion(level, current);
       progress.textContent = `${current + 1} / ${QUESTION_COUNT}`;
       seq.replaceChildren();
@@ -132,12 +141,42 @@ export default {
           b.append(img);
         }
         b.addEventListener("pointerdown", () => {
+          if (locked) return;
           if (opt === q.answer) {
+            locked = true;
             correct += 1;
-            current += 1;
-            if (current === QUESTION_COUNT) onWin({ stars: starsFromCorrect(correct) });
-            else showQuestion();
+            sfx.correct();
+            // üstteki ? kutusunu seçilen öğeyle doldur + ✓ işareti
+            const hole = seq.lastChild;
+            hole.textContent = "";
+            hole.style.cssText = "min-width:1.4em;text-align:center;background:var(--success);color:#fff;border-radius:10px;padding:2px 6px;font-weight:900";
+            if (q.kind === "arithmetic" || q.kind === "growing") {
+              hole.textContent = `${q.answer} ✓`;
+            } else {
+              const img = document.createElement("img");
+              img.src = ICON_URL(q.answer);
+              img.alt = "";
+              img.draggable = false;
+              img.style.cssText = "width:1.3em;height:1.3em;object-fit:contain;vertical-align:middle";
+              hole.append(img, " ✓");
+            }
+            // sonraki soruya geçiş oku
+            const arrow = document.createElement("div");
+            arrow.className = "hint";
+            arrow.textContent = "Devam ➜";
+            arrow.style.color = "var(--success)";
+            arrow.style.fontWeight = "800";
+            container.append(arrow);
+            timers.push(
+              setTimeout(() => {
+                arrow.remove();
+                current += 1;
+                if (current === QUESTION_COUNT) onWin({ stars: starsFromCorrect(correct) });
+                else showQuestion();
+              }, 1200),
+            );
           } else {
+            sfx.wrong();
             b.classList.remove("shake");
             void b.offsetWidth;
             b.classList.add("shake");
@@ -154,6 +193,7 @@ export default {
       pause() {},
       resume() {},
       destroy() {
+        timers.forEach(clearTimeout);
         container.replaceChildren();
       },
     };

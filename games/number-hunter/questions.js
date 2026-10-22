@@ -2,12 +2,12 @@
 // Seviyeler: toplama (0-10) → çıkarma/toplama (0-20) → çarpma temelleri.
 // Kural: doğru cevap her zaman ekrandaki balonlardan biridir; sorular tekrarsız dağılır (near-miss çeldiriciler).
 
-export const TARGET_CORRECT = 10;
+export const TARGET_CORRECT = 5;
 
-/** Seviye → işlem türleri. */
+/** Seviye → işlem türleri (20 seviye: 1-7 toplama, 8-14 toplama/çıkarma, 15-20 çarpma). */
 export function opsForLevel(level) {
-  if (level === 1) return ["add"];
-  if (level === 2) return ["add", "sub"];
+  if (level <= 7) return ["add"];
+  if (level <= 14) return ["add", "sub"];
   return ["mul"];
 }
 
@@ -17,7 +17,7 @@ export function makeQuestion(level, rng = Math.random) {
   const op = ops[Math.floor(rng() * ops.length)];
   let a, b, answer;
   if (op === "add") {
-    const max = level === 1 ? 10 : 20;
+    const max = Math.min(20, 10 + Math.floor((level - 1) / 4) * 5); // 10 → 20 arası kademeli
     a = Math.floor(rng() * (max + 1));
     b = Math.floor(rng() * (max - a + 1));
     answer = a + b;
