@@ -5,7 +5,7 @@ import { starsFromMoves } from "../../shared/difficulty.js";
 import { createTapSelect } from "../../shared/drag.js";
 import { sfx } from "../../shared/audio.js";
 
-const DISKS_BY_LEVEL = (level) => Math.min(8, 3 + Math.floor((level - 1) / 3)); // 20 seviye: 3 → 8 disk
+const DISKS_BY_LEVEL = (level) => Math.min(8, 3 + Math.floor((level - 1) / 2)); // 20 seviye: 3-4(1-4) → 5-6(5-8) → 7-8(9+) disk
 const DISK_COLORS = ["#e74c3c", "#e67e22", "#f1c40f", "#2ecc71", "#3498db", "#9b59b6", "#e91e8c", "#16a085"];
 
 export default {
@@ -73,7 +73,7 @@ export default {
       towers = applyMove(towers, from, to);
       moves += 1;
       sfx.correct();
-      statusEl.textContent = `${moves} hamle (en az ${optimalMoves(disks)})`;
+      statusEl.textContent = `Seviye ${level} · ${moves} hamle (en az ${optimalMoves(disks)})`;
       render();
       if (isSolved(towers, disks)) {
         setTimeout(() => onWin({ stars: starsFromMoves(moves, optimalMoves(disks)) }), 500);
@@ -111,7 +111,7 @@ export default {
     }
 
     container.append(bar, board);
-    statusEl.textContent = `0 hamle (en az ${optimalMoves(disks)})`;
+    statusEl.textContent = `Seviye ${level} · 0 hamle (en az ${optimalMoves(disks)})`;
     render();
 
     return {
