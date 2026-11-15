@@ -11,16 +11,16 @@ PRD: `../../../../01_Requirements_and_Scope/PRD_KidsGamesWeb.md` · Görev plan�
 ```bash
 npm install
 npm run dev          # yerel geliştirme (--host ile ağ üzerinden cihaz testi)
-npm run test         # Vitest (45 birim + veri testi)
+npm run test         # Vitest (83 test)
 npm run build        # dist/ — base './', PWA (service worker + manifest)
 npm run check        # CI kontrolleri: G-12 harici URL + G-11 giriş boyut bütçesi
 ```
 
 ## Durum (F4 sonrası)
 
-- **20 oyun** — memory, odd-one-out, number-hunter, pattern, letter-fish, maze, sorter, hanoi, simon, counting, ordering, shadow, bigger, missing-number, whack, colors, even-odd, make-ten, vanish
+- **19 oyun** — memory, odd-one-out, number-hunter, pattern, letter-fish, maze, sorter, hanoi, simon, counting, ordering, shadow, bigger, missing-number, whack, colors, even-odd, make-ten, vanish
 - **v2:** kademeli seviye, her oyunda ana sayfa, Web Audio efekt + konfeti, kalıcı sessiz, ebeveyn sıfırlama (tümü / oyun)
-- **PWA aktif:** `vite-plugin-pwa` (generateSW, autoUpdate); uçak modunda ana sayfa + 10 oyun açılır (kabul testi geçti)
+- **PWA aktif:** `vite-plugin-pwa` (generateSW, autoUpdate); derlenen tüm HTML/JS precache edilir, yeni oyunlar da çevrimdışı açılır
 - **Lighthouse (mobil):** Performans 100 · Erişilebilirlik 100 · Best Practices 96
 - **Görseller:** Higgsfield AI ile üretilmiş sprite sheet'ler → lokal dilimlenmiş WebP (`CREDITS.md`)
 
