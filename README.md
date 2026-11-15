@@ -1,6 +1,8 @@
 # kids-games-web — Zeka Oyunları
 
-**Canlı:** https://mryesiller.github.io/kids-games-web/ · Repo: https://github.com/mryesiller/kids-games-web (GitHub Actions ile otomatik deploy: push → build + check → Pages)
+**Canlı (VPS):** https://kids.mryesiller.dev · Repo: https://git.mryesiller.dev/admin/kids-games-web (Coolify, `main` branch otomatik deploy)
+
+Orijinal GitHub kopyası ayrı duruyor ve değişmeyecek: https://mryesiller.github.io/kids-games-web/ · https://github.com/mryesiller/kids-games-web
 
 5-10 yaş çocuklar için reklamsız, girişsiz, kurulumsuz 10 mini oyun. Statik site (Vite MPA, vanilla JS, PWA).
 
@@ -23,11 +25,13 @@ npm run check        # CI kontrolleri: G-12 harici URL + G-11 giriş boyut büt�
 
 ## Deployment (karar)
 
-Tam statik dağıtım — **herhangi bir statik host** (Cloudflare Pages / GitHub Pages / Netlify):
+Bu kopya VPS üzerinde Coolify + Docker (çok aşamalı Node derlemesi, nginx statik yayın) ile `https://kids.mryesiller.dev` adresinde çalışır. `vite.config.js` içindeki `base: './'` kök etki alanında da doğru yol üretir; PWA `start_url` / `scope` görecelidir.
+
+Yerel statik dağıtım da duruyor:
 1. `npm run build`
-2. `dist/` klasörünü yayınla. `base: './'` sayesinde kök VEYA alt dizinden (ör. `username.github.io/kids-games-web/`) çalışır.
+2. `dist/` klasörünü yayınla. `base: './'` sayesinde kök VEYA alt dizinden çalışır.
 3. Şart: HTTPS (service worker için). Build'de harici istek sıfırdır (`npm run check` doğrular) — çerez/analitik/izleyici yok (KVKK/GDPR-K/COPPA uyumlu, yalnız yerel localStorage).
-4. Header önerisi: `sw.js`, `index.html`, `manifest.webmanifest` → `Cache-Control: no-cache`; `assets/*` → `max-age=31536000, immutable`. (Bayat `sw.js` HTTP önbelleğinde güncellemeyi 24 saate kadar geciktirir.)
+4. `nginx.conf` header önerisini uygular: `sw.js`, `index.html`, `manifest.webmanifest` → `Cache-Control: no-cache`; `assets/*` → `max-age=31536000, immutable`.
 
 ## Yapı
 
