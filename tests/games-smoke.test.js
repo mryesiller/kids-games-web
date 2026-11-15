@@ -3,7 +3,7 @@
 // Canvas oyunları (number-hunter, maze) jsdom'da ctx alamadığı için kapsam dışı — Playwright/browser smoke onları kapsar.
 import { describe, it, expect } from "vitest";
 
-const GAMES = ["memory", "odd-one-out", "pattern", "letter-fish", "hanoi"];
+const GAMES = ["memory", "odd-one-out", "pattern", "letter-fish", "hanoi", "whack", "colors", "even-odd", "make-ten", "vanish"];
 
 describe("oyun boot smoke (jsdom)", () => {
   for (const id of GAMES) {

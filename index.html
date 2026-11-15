@@ -2,21 +2,23 @@
 <html lang="tr">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
     <title>Zeka Oyunları</title>
     <link rel="stylesheet" href="./shared/core.css" />
   <script src="./sw-register.js" defer></script></head>
   <body>
-    <header style="text-align:center;padding:16px">
+    <header class="home-bar">
       <h1 id="title"></h1>
-      <div id="starbar" style="display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap;margin-bottom:10px">
+      <div id="starbar" class="starbar">
         <span id="totalStars" style="font-weight:900;font-size:1.2rem;background:#fef3c7;border-radius:999px;padding:6px 16px" title="Toplam yıldız"></span>
-        <button type="button" id="rewardsBtn" style="min-height:44px">🎁 Ödüller</button>
+        <button type="button" id="muteBtn" aria-pressed="false">🔊</button>
+        <button type="button" id="rewardsBtn">🎁 Ödüller</button>
+        <button type="button" id="resetBtn" class="quiet">Ebeveyn</button>
         <span id="nextReward" style="color:var(--muted);font-size:0.95rem"></span>
       </div>
       <nav id="filters" style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"></nav>
     </header>
-    <main id="cards" class="grid" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr));padding:16px"></main>
+    <main id="cards" class="grid home-grid"></main>
     <div id="loading" class="loading" aria-busy="true"><span class="spinner"></span><span>Yükleniyor...</span></div><script type="module" src="./main.js"></script>
   </body>
 </html>

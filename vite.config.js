@@ -20,6 +20,11 @@ const gameIds = [
   "shadow",
   "bigger",
   "missing-number",
+  "whack",
+  "colors",
+  "even-odd",
+  "make-ten",
+  "vanish",
 ];
 
 export default defineConfig({
@@ -35,7 +40,7 @@ export default defineConfig({
       manifest: {
         name: "Zeka Oyunları",
         short_name: "ZekaOyunları",
-        description: "5-10 yaş çocuklar için reklamsız, girişsiz 10 mini zeka oyunu",
+        description: "5-10 yaş çocuklar için reklamsız, girişsiz mini zeka oyunları",
         lang: "tr",
         start_url: "./",
         display: "standalone",

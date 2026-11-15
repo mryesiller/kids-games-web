@@ -2,6 +2,12 @@
 // Kontroller: parmakla kaydırma, ok tuşları, ekran okları. Adım → yıldız (BFS optimal).
 import { generateMaze, solveMaze, starsFromSteps } from "./maze.js";
 import { sfx } from "../../shared/audio.js";
+import { ramp } from "../../shared/difficulty.js";
+
+/** 5×5'ten 8×8'e. 12×12 telefonda hücreleri dokunulmaz yapıyordu. */
+export function sizeForLevel(level) {
+  return ramp(level, 5, 8, 20);
+}
 
 const FOX_SRC = new URL("./assets/fox.webp", import.meta.url).href;
 
@@ -9,7 +15,7 @@ export default {
   id: "maze",
   maxLevel: 20,
   start(container, { level, onWin }) {
-    const n = 5 + Math.floor(((Math.min(level, 20) - 1) * 7) / 19); // 5×5 → 12×12, 20 seviye
+    const n = sizeForLevel(level);
     const walls = generateMaze(n);
     const optimal = solveMaze(walls).length - 1;
     let pos = [0, 0];

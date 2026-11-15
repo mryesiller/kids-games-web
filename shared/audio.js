@@ -1,10 +1,12 @@
 // audio.js — ses yöneticisi (PRD G-9): %100 Web Audio sentezi, ses dosyası yok.
 // AudioContext ilk kullanıcı dokunuşunda açılır (iOS/Safari uyumu). Mute kalıcıdır.
+import { installFx, mark } from "./fx.js";
 
 let ctx = null;
 let muted = false;
 
 export function initAudio() {
+  installFx();
   try {
     muted = window.localStorage.getItem("kg:muted") === "1";
   } catch {
@@ -65,9 +67,16 @@ export function playTones(freqs, { duration = 0.12, gap = 0.02, type = "sine", v
 
 export const sfx = {
   tap: () => playTones([440], { duration: 0.06 }),
-  correct: () => playTones([523, 659, 784]),
-  wrong: () => playTones([220, 180], { duration: 0.15, type: "triangle" }),
+  correct: () => {
+    playTones([523, 659, 784]);
+    mark("✓", "#1e7e46");
+  },
+  wrong: () => {
+    playTones([220, 180], { duration: 0.15, type: "triangle" });
+    mark("✗", "#c0392b");
+  },
   star: () => playTones([659, 784, 1047], { duration: 0.15 }),
+  levelup: () => playTones([523, 659, 784, 1047], { duration: 0.16, gap: 0.04 }),
   /** Kısa alkış: rastgele aralıklı gürültü patlamaları (dosya sesi yok). */
   applause: () => {
     if (!ctx || muted) return;

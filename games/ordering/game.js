@@ -1,4 +1,5 @@
 // game.js — O12 Sıraya Diz: sayıları küçükten büyüğe sırayla seç. 20 seviye: 3 → 6 sayı.
+import { ramp } from "../../shared/difficulty.js";
 import { starsFromWrong } from "../../shared/drag-helpers.js";
 import { sfx } from "../../shared/audio.js";
 
@@ -6,14 +7,15 @@ export const ROUNDS = 5;
 export const MAX_LEVEL = 20;
 
 export function sizeForLevel(level) {
-  return Math.min(6, 3 + Math.floor((level - 1) / 6));
+  return ramp(level, 3, 6, 20);
 }
 
 /** Tur üret: {numbers: karışık dizi, sorted: doğru sıralama} */
 export function makeRound(level, rng = Math.random) {
   const size = sizeForLevel(level);
-  const start = Math.floor(rng() * 20);
-  const step = 1 + Math.floor(rng() * 3);
+  const span = level <= 6 ? 8 : level <= 12 ? 20 : 40;
+  const step = level <= 8 ? 1 : 1 + Math.floor(rng() * 2);
+  const start = Math.floor(rng() * span);
   const sorted = Array.from({ length: size }, (_, i) => start + i * step);
   const numbers = [...sorted];
   for (let i = numbers.length - 1; i > 0; i--) {

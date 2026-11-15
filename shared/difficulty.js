@@ -28,6 +28,30 @@ export function starsFromMoves(moves, optimal) {
   return 1;
 }
 
+/** 1..maxLevel aralığına sıkıştır. Bozuk giriş 1 döner. */
+export function clampLevel(level, maxLevel = 20) {
+  const n = Math.trunc(Number(level));
+  const cap = Math.max(1, Math.trunc(maxLevel) || 1);
+  if (!Number.isFinite(n)) return 1;
+  return Math.max(1, Math.min(cap, n));
+}
+
+/**
+ * Seviye 1'de `min`, son seviyede `max`. Ara değerler tam sayı ve monotondur
+ * (max < min ise azalır). Uçlar birebir tutar.
+ */
+export function ramp(level, min, max, maxLevel = 20) {
+  const steps = Math.max(1, Math.trunc(maxLevel) - 1);
+  const l = clampLevel(level, maxLevel);
+  const span = max - min;
+  return min + Math.floor((span * (l - 1)) / steps);
+}
+
+/** Yıldız yoksa seviye açılmaz (0 yıldız = tekrar). */
+export function shouldAdvance(stars) {
+  return Math.trunc(Number(stars)) >= 1;
+}
+
 /** Fisher-Yates; orijinal diziyi değiştirmez. */
 export function shuffled(arr, rng = Math.random) {
   const a = [...arr];

@@ -1,13 +1,13 @@
 // game.js — O11 Say Bak: ekranda N nesne, doğru sayıyı seç. 20 seviye: 3 → 12 nesne.
 import { ICON_URL, ICON_COUNT } from "../../shared/icons.js";
-import { starsFromCorrect } from "../../shared/difficulty.js";
+import { starsFromCorrect, ramp } from "../../shared/difficulty.js";
 import { sfx } from "../../shared/audio.js";
 
 export const TARGET = 10;
 export const MAX_LEVEL = 20;
 
 export function countForLevel(level) {
-  return Math.min(12, 2 + level); // seviye 1 → 3 nesne, 10+ → 12
+  return ramp(level, 3, 12, 20);
 }
 
 /** Soru üret: {icons: [iconId...], count, options} — options'ta cevap tam 1 kez. */
@@ -58,7 +58,7 @@ export default {
         img.src = ICON_URL(id);
         img.alt = "";
         img.draggable = false;
-        img.style.cssText = "width:64px;height:64px;object-fit:contain";
+        img.style.cssText = "width:min(64px,18vw);height:min(64px,18vw);object-fit:contain";
         field.append(img);
       }
       opts.replaceChildren();

@@ -1,13 +1,13 @@
 // game.js — O13 Gölge Eşleştir: nesneyi gölgesiyle eşleştir. 20 seviye: 3 → 5 seçenek.
 import { ICON_URL, ICON_COUNT } from "../../shared/icons.js";
-import { starsFromCorrect } from "../../shared/difficulty.js";
+import { starsFromCorrect, ramp } from "../../shared/difficulty.js";
 import { sfx } from "../../shared/audio.js";
 
 export const TARGET = 10;
 export const MAX_LEVEL = 20;
 
 export function optionsForLevel(level) {
-  return Math.min(5, 3 + Math.floor((level - 1) / 7));
+  return ramp(level, 3, 5, 20);
 }
 
 /** Soru üret: {iconId, options: [iconId...]} — cevap tam 1 kez. */

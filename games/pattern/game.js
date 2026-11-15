@@ -34,19 +34,19 @@ function iconQuestion(seqKind, i) {
   return { shown, options, answer };
 }
 
-function numberQuestion(kind, i) {
+function numberQuestion(kind, i, level) {
   if (kind === "arithmetic") {
-    const start = 2 + (i % 5);
-    const step = 2 + (i % 3);
+    const start = 1 + (i % 5);
+    const step = 1 + Math.floor((Math.max(level, 7) - 7) / 2);
     const shown = [0, 1, 2, 3].map((k) => start + k * step);
-    return { shown, answer: start + 4 * step, options: null }; // sayı seçenekleri aşağıda
+    return { shown, answer: start + 4 * step, options: null };
   }
-  // büyüyen: 1, 2, 4, 7 (fark artar)
-  let v = 1;
+  const base = 1 + Math.floor(Math.max(0, level - 14) / 4);
+  let v = base;
   const shown = [];
   for (let k = 0; k < 4; k++) {
     shown.push(v);
-    v += k + 1;
+    v += base + k;
   }
   return { shown, answer: v, options: null };
 }
@@ -67,15 +67,20 @@ function numericOptions(answer, i) {
   return arr;
 }
 
-/** 20 seviye: 5 şablon döngüsü — AB → AAB/ABC → sayı örüntüleri → büyüyen. */
-function kindForLevel(level) {
-  return ["AB", "AAB", "ABC", "arithmetic", "growing"][(level - 1) % 5];
+/** Zorluk geri dönmez: AB → AAB → ABC → aritmetik (adım büyür) → büyüyen dizi. */
+export function kindForLevel(level) {
+  const l = Math.max(1, Math.min(20, Math.trunc(level) || 1));
+  if (l <= 1) return "AB";
+  if (l === 2) return "AAB";
+  if (l <= 6) return "ABC";
+  if (l <= 13) return "arithmetic";
+  return "growing";
 }
 
 /** Saf üreteci: seviye ve soru indeksinden çözülebilir, TEK doğru cevaplı soru. */
 export function makeQuestion(level, i) {
   const kind = kindForLevel(level);
-  const q = kind === "arithmetic" || kind === "growing" ? numberQuestion(kind, i) : iconQuestion(kind, i);
+  const q = kind === "arithmetic" || kind === "growing" ? numberQuestion(kind, i, level) : iconQuestion(kind, i);
   const options = q.options ?? numericOptions(q.answer, i);
   return { kind, shown: q.shown, options, answer: q.answer };
 }

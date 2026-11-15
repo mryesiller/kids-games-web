@@ -2,6 +2,7 @@
 // Renk modeli: nesnenin ALTINDAKİ RENKLİ ROZET (kırmızı/mavi daire) — filtre kullanılmaz,
 // böylece kutu etiketi ile nesne rengi her zaman birebir aynıdır (çocuk için tek yorum).
 // Seviyeler: tek kural (renk) → kural değişimi (renk/şekil) → iki kural birlikte.
+import { ramp } from "../../shared/difficulty.js";
 import { enableDrag, createTapSelect } from "../../shared/drag.js";
 import { starsFromWrong } from "../../shared/drag-helpers.js";
 import { ICON_URL, ICON_COUNT } from "../../shared/icons.js";
@@ -18,17 +19,20 @@ const COLORS = {
 };
 const COLOR_ORDER = ["red", "blue", "yellow", "green", "purple"];
 
-/** 20 seviye: 1-4 arası 2 renk, sonra her 4 seviyede 1 renk eklenir (maks 5). */
+/** 2 renkten 5 renge, ara seviyeler boşluk bırakmadan artar. */
 export function colorsForLevel(level) {
-  const count = Math.min(5, 2 + Math.floor((level - 1) / 4));
-  return COLOR_ORDER.slice(0, count);
+  return COLOR_ORDER.slice(0, ramp(level, 2, 5, 20));
 }
 
-export function makeObjects(roundIndex, colors, rng = Math.random) {
+export function objectsForLevel(level) {
+  return ramp(level, 4, 8, 20);
+}
+
+export function makeObjects(roundIndex, colors, rng = Math.random, count = OBJECTS_PER_ROUND, iconIds = null) {
   const objs = [];
-  for (let i = 0; i < OBJECTS_PER_ROUND; i++) {
+  for (let i = 0; i < count; i++) {
     objs.push({
-      iconId: 1 + Math.floor(rng() * ICON_COUNT),
+      iconId: iconIds ? iconIds[i % iconIds.length] : 1 + Math.floor(rng() * ICON_COUNT),
       color: colors[i % colors.length],
     });
   }
@@ -40,9 +44,8 @@ export function makeObjects(roundIndex, colors, rng = Math.random) {
 }
 
 export function ruleFor(level, roundIndex) {
-  // 20 seviye: 1-6 renk, 7-13 kural değişimi, 14-20 iki kural
-  if (level <= 6) return "color";
-  if (level <= 13) return roundIndex % 2 === 0 ? "color" : "shape";
+  if (level <= 8) return "color";
+  if (level <= 14) return roundIndex % 2 === 0 ? "color" : "shape";
   return "both";
 }
 
@@ -60,6 +63,7 @@ export default {
     let round = 0;
     let wrongDrops = 0;
     let placedThisRound = 0;
+    let expected = OBJECTS_PER_ROUND;
     const cleanups = [];
 
     container.style.cssText = "width:100%;display:flex;flex-direction:column;gap:10px";
@@ -98,7 +102,7 @@ export default {
         setTimeout(() => piece.remove(), 260);
         placedThisRound += 1;
         sfx.correct();
-        if (placedThisRound === OBJECTS_PER_ROUND) {
+        if (placedThisRound === expected) {
           round += 1;
           if (round === ROUNDS) {
             onWin({ stars: starsFromWrong(wrongDrops) });
@@ -145,9 +149,19 @@ export default {
       placedThisRound = 0;
       const rule = ruleFor(level, round);
       const activeColors = colorsForLevel(level);
-      const objs = makeObjects(round, activeColors);
+      const count = objectsForLevel(level);
+      let colors = activeColors;
+      let iconIds = null;
+      if (rule !== "color") {
+        const a = 1 + Math.floor(Math.random() * ICON_COUNT);
+        const b = (a % ICON_COUNT) + 1;
+        iconIds = [a, b];
+      }
+      if (rule === "both") colors = ["red", "blue"];
+      const objs = makeObjects(round, colors, Math.random, count, iconIds);
+      expected = objs.length;
       ruleBanner.textContent =
-        rule === "color" ? "RENE GÖRE AYIR!" : rule === "shape" ? "ŞEKLİNE GÖRE AYIR!" : "RENK + ŞEKİL BİRLİKTE!";
+        rule === "color" ? "RENGE GÖRE AYIR!" : rule === "shape" ? "ŞEKLİNE GÖRE AYIR!" : "RENK + ŞEKİL BİRLİKTE!";
 
       boxRow.replaceChildren();
       boxes = [];
@@ -169,7 +183,7 @@ export default {
         const box = { ...def, el: document.createElement("button") };
         box.el.type = "button";
         box.el.style.cssText =
-          "flex:1;max-width:220px;min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:10px";
+          "flex:1 1 96px;max-width:180px;min-height:84px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:8px";
         // kutu başlığı: renk kuralında düz renkli rozet (bozuk img yok), şekil kuralında örnek ikon
         const head = document.createElement("span");
         if (rule === "color") {

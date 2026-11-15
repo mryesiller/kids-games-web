@@ -1,13 +1,15 @@
 // game.js — O1 Hafıza Kartları (PRD): DOM + CSS Grid, 3 seviye, hamle→yıldız.
 // Görseller: Higgsfield ile üretilmiş sprite sheet'ten dilimlenmiş WebP ikonlar (assets/).
 import { t } from "../../shared/i18n.js";
-import { shuffled, starsFromMoves } from "../../shared/difficulty.js";
+import { shuffled, starsFromMoves, ramp } from "../../shared/difficulty.js";
 import { sfx } from "../../shared/audio.js";
 import { ICON_URL, ICON_COUNT } from "../../shared/icons.js";
-import { showStartOverlay } from "../../shared/ui.js";
 
-/** Seviye → çift sayısı: 20 seviye, kademeli artar (6 → 20 kart). */
-const PAIRS_BY_LEVEL = (level) => Math.min(10, 2 + Math.floor((level - 1) / 2) + (level > 1 ? 1 : 0));
+/** Seviye → çift sayısı: 2 çiftten 8 çifte, telefon ekranına sığar. */
+export function pairsForLevel(level) {
+  return ramp(level, 2, 8, 20);
+}
+const PAIRS_BY_LEVEL = pairsForLevel;
 const OPTIMAL_MOVES = PAIRS_BY_LEVEL;
 const PREVIEW_MS = 3000; // Başla'ya basınca tüm kartlar 3 sn açık gösterilir (ezber süresi)
 const COLUMNS_BY_PAIRS = { 2: 2, 3: 3, 4: 4, 5: 4, 6: 4, 7: 4, 8: 4, 9: 5, 10: 5 };
@@ -118,20 +120,14 @@ export default {
     }
     container.append(movesEl, grid);
 
-    // Başla overlay'i: talimat + silik arka fon; Başla → 3 sn önizleme → oyun
-    showStartOverlay({
-      instruction: "Kartlara dikkatlice bak ve ezberle!",
-      icon: "🃏",
-      onStart: () => {
-        cards.forEach(flipUp);
-        timers.push(
-          setTimeout(() => {
-            cards.forEach(flipDown);
-            lock = false;
-          }, PREVIEW_MS),
-        );
-      },
-    });
+    const preview = Math.max(1600, PREVIEW_MS - (Math.max(1, level) - 1) * 70);
+    cards.forEach(flipUp);
+    timers.push(
+      setTimeout(() => {
+        cards.forEach(flipDown);
+        lock = false;
+      }, preview),
+    );
 
     return {
       pause() {

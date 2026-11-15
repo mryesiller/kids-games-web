@@ -4,7 +4,7 @@
 
 Orijinal GitHub kopyası ayrı duruyor ve değişmeyecek: https://mryesiller.github.io/kids-games-web/ · https://github.com/mryesiller/kids-games-web
 
-5-10 yaş çocuklar için reklamsız, girişsiz, kurulumsuz 10 mini oyun. Statik site (Vite MPA, vanilla JS, PWA).
+5-10 yaş çocuklar için reklamsız, girişsiz, kurulumsuz mini oyunlar. Statik site (Vite MPA, vanilla JS, PWA).
 
 PRD: `../../../../01_Requirements_and_Scope/PRD_KidsGamesWeb.md` · Görev planı: `../../../../05_Documentation_and_Guides/TASK_PLAN_KidsGamesWeb.md`
 
@@ -18,7 +18,8 @@ npm run check        # CI kontrolleri: G-12 harici URL + G-11 giriş boyut büt�
 
 ## Durum (F4 sonrası)
 
-- **10/10 oyun tamam** — memory, odd-one-out, puzzle, number-hunter, pattern, letter-fish, maze, sorter, hanoi, simon
+- **20 oyun** — memory, odd-one-out, number-hunter, pattern, letter-fish, maze, sorter, hanoi, simon, counting, ordering, shadow, bigger, missing-number, whack, colors, even-odd, make-ten, vanish
+- **v2:** kademeli seviye, her oyunda ana sayfa, Web Audio efekt + konfeti, kalıcı sessiz, ebeveyn sıfırlama (tümü / oyun)
 - **PWA aktif:** `vite-plugin-pwa` (generateSW, autoUpdate); uçak modunda ana sayfa + 10 oyun açılır (kabul testi geçti)
 - **Lighthouse (mobil):** Performans 100 · Erişilebilirlik 100 · Best Practices 96
 - **Görseller:** Higgsfield AI ile üretilmiş sprite sheet'ler → lokal dilimlenmiş WebP (`CREDITS.md`)

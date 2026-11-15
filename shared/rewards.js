@@ -10,6 +10,7 @@ export const REWARDS = [
   { id: "dino", name: "Dinozor Krallığı", icon: "🦖", cost: 27, art: ["🦖", "🌋", "🦕", "🌴", "🥚"] },
   { id: "castle", name: "Şato Sarayı", icon: "🏰", cost: 35, art: ["🏰", "👑", "🛡️", "🐴", "💎"] },
   { id: "champion", name: "Şampiyon Kupası", icon: "🏆", cost: 44, art: ["🏆", "🥇", "🎯", "💪", "🎊", "⭐"] },
+  { id: "galaxy", name: "Galaksi Koleksiyonu", icon: "🌌", cost: 54, art: ["🌌", "🌠", "🛸", "👽", "✨"] },
 ];
 
 /** Toplam yıldıza göre açılmış ödüller. */
