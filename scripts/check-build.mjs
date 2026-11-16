@@ -15,8 +15,11 @@ const scan = (dir) => {
     if (statSync(p).isDirectory()) scan(p);
     else if (/\.(html|js|css|json|svg|webp)$/.test(name) && !/^workbox-/.test(name)) {
       const text = readFileSync(p, "utf8");
+      // First-party Umami on analytics.mryesiller.dev is allowed (G-12 still blocks other hosts).
+      const allowedHosts = new Set(["www.w3.org", "analytics.mryesiller.dev"]);
       for (const m of text.matchAll(/(?:https?:)?\/\/[a-zA-Z0-9][a-zA-Z0-9.-]*\.[a-zA-Z]{2,}/g)) {
-        if (!m[0].includes("www.w3.org")) bad.push(`${p}: ${m[0]}`);
+        const host = m[0].replace(/^(https?:)?\/\//, "").split("/")[0];
+        if (!allowedHosts.has(host)) bad.push(`${p}: ${m[0]}`);
       }
     }
   }
