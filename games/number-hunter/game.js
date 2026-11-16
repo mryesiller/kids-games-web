@@ -105,7 +105,7 @@ export default {
       b.r = Math.min(W, H) * 0.09 + 14;
       b.x = b.r + Math.random() * Math.max(1, W - 2 * b.r);
       b.y = H + b.r;
-      b.speed = (45 + level * 15 + Math.random() * 25) * (H / 500); // px/sn: 1. seviyede de akıcı tırmanış
+      b.speed = (32 + level * 6 + Math.random() * 16) * (H / 500);
       b.sprite = SPRITES[Math.floor(Math.random() * SPRITES.length)];
     }
 

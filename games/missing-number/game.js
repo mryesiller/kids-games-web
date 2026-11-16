@@ -1,18 +1,18 @@
 // game.js — O15 Eksik Sayı: 1..N dizisinde eksik olanı bul. 20 seviye: dizi 4 → 10 öğe.
-import { starsFromCorrect } from "../../shared/difficulty.js";
+import { starsFromCorrect, ramp } from "../../shared/difficulty.js";
 import { sfx } from "../../shared/audio.js";
 
 export const TARGET = 10;
 export const MAX_LEVEL = 20;
 
 export function sizeForLevel(level) {
-  return Math.min(10, 3 + Math.floor(level / 4) + 1); // seviye 1 → 4, 20 → 10? (3+5+1=9→min10)
+  return ramp(level, 4, 9, 20);
 }
 
 /** Soru üret: {shown: [num|null...], answer, options} */
 export function makeQuestion(level, rng = Math.random) {
-  const size = Math.min(9, 4 + Math.floor((level - 1) / 4)); // 4 → 9 öğe
-  const start = 1 + Math.floor(rng() * 20);
+  const size = sizeForLevel(level);
+  const start = 1 + Math.floor(rng() * (4 + level * 2));
   const seq = Array.from({ length: size }, (_, i) => start + i);
   const missingIdx = Math.floor(rng() * size);
   const answer = seq[missingIdx];

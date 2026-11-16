@@ -3,7 +3,7 @@
 // Benzersiz çözüm: eksilen harf (Türkçe büyük harf eşdeğeriyle) kelimede yalnız 1 kez geçer.
 import wordsData from "./words.json";
 import { trUpper, trEquals } from "../../shared/i18n.js";
-import { starsFromCorrect } from "../../shared/difficulty.js";
+import { starsFromCorrect, ramp } from "../../shared/difficulty.js";
 import { sfx } from "../../shared/audio.js";
 
 export const WORDS = wordsData.words;
@@ -24,8 +24,12 @@ export function validBlanks(word) {
 
 /** Soru üret: {word, emoji, blankIndex, answer, options}. Zorluk: min kelime uzunluğu seviyeyle artar.
  * Benzersiz çözüm garantili: benzersiz harfi olmayan kelime atlanır; son kullanılan kelimeler tekrarlanmaz. */
+export function minLengthForLevel(level) {
+  return ramp(level, 3, 6, 20);
+}
+
 export function makeQuestion(level, rng = Math.random, usedWords = new Set()) {
-  const minLen = Math.min(6, 3 + Math.floor((level - 1) / 5)); // 20 seviye: 3→6 harf
+  const minLen = minLengthForLevel(level);
   const lenPool = WORDS.filter((w) => w.word.length >= minLen);
   let pool = lenPool.filter((w) => !usedWords.has(w.word));
   if (pool.length === 0) pool = lenPool.length > 0 ? lenPool : WORDS;

@@ -1,20 +1,22 @@
 // game.js — O14 Hangisi Büyük: iki sayıdan büyüğü seç. 20 seviye: aralık 10 → 100.
-import { starsFromCorrect } from "../../shared/difficulty.js";
+import { starsFromCorrect, ramp } from "../../shared/difficulty.js";
 import { sfx } from "../../shared/audio.js";
 
 export const TARGET = 10;
 export const MAX_LEVEL = 20;
 
 export function maxForLevel(level) {
-  return Math.min(100, 9 + level * 5); // seviye 1 → 14, 19+ → 100
+  return ramp(level, 5, 50, 20);
 }
 
 /** Soru üret: {a, b, answer} — a ≠ b. */
 export function makeQuestion(level, rng = Math.random) {
-  const max = maxForLevel(level);
+  const max = Math.max(2, maxForLevel(level));
+  const minGap = level <= 6 ? 2 : 1;
   const a = 1 + Math.floor(rng() * max);
-  let off = 1 + Math.floor(rng() * (max - 1)); // 1..max-1 kayma → b ≠ a garantili
-  const b = ((a - 1 + off) % max) + 1;
+  let b = a;
+  for (let i = 0; i < 12 && Math.abs(a - b) < minGap; i++) b = 1 + Math.floor(rng() * max);
+  if (a === b) b = a >= max ? a - 1 : a + 1;
   return { a, b, answer: Math.max(a, b) };
 }
 

@@ -3,15 +3,17 @@
 // Ses: Web Audio osilatör (audio.js). Hata → aynı dizi yeniden gösterilir (cezasız).
 import { getBest, setBest } from "../../shared/storage.js";
 import { playTones } from "../../shared/audio.js";
-import { showStartOverlay } from "../../shared/ui.js";
+import { clampLevel } from "../../shared/difficulty.js";
 
 export const TARGET_ROUND = 10; // 10 tur tamamlanınca kazanma
 
 /** Seviye → ped sayısı ve gösterim hızı (20 seviye: hız artar, 11+ 6 ped). */
 export function configFor(level) {
+  const l = clampLevel(level, 20);
   return {
-    pads: level <= 10 ? 4 : 6,
-    showMs: Math.max(320, 640 - level * 16),
+    pads: l <= 10 ? 4 : 6,
+    showMs: Math.max(400, 860 - l * 24),
+    startLen: l <= 6 ? 1 : l <= 13 ? 2 : 3,
   };
 }
 export const LEVELS = { 1: configFor(1), 2: configFor(2), 3: configFor(3) };
@@ -44,8 +46,9 @@ export default {
   id: "simon",
   maxLevel: 20,
   start(container, { level, onWin }) {
-    const { pads: padCount, showMs } = configFor(level);
+    const { pads: padCount, showMs, startLen } = configFor(level);
     let seq = [];
+    for (let i = 1; i < startLen; i++) seq = nextSequence(seq, padCount);
     let inputIndex = 0; // kullanıcının doğrulama konumu
     let showing = false;
     let paused = false;
@@ -57,8 +60,7 @@ export default {
     status.className = "hint";
     const board = document.createElement("div");
     board.style.cssText =
-      "display:grid;grid-template-columns:repeat(2,minmax(120px,180px));gap:14px;align-items:center;justify-content:center";
-    if (padCount === 6) board.style.gridTemplateColumns = "repeat(2,minmax(110px,160px))";
+      "display:grid;grid-template-columns:repeat(2,minmax(88px,42vw));gap:12px;align-items:center;justify-content:center;width:min(92vw,420px)";
 
     const pads = [];
     for (let i = 0; i < padCount; i++) {
@@ -156,11 +158,7 @@ export default {
     if (b > 0) best.textContent = `Rekor: ${b} tur`;
 
     container.append(status, board, best);
-    showStartOverlay({
-      instruction: "Renk dizisini izle, sonra aynı sırayla tekrar et!",
-      icon: "🎵",
-      onStart: () => timers.push(setTimeout(beginRound, 400)),
-    });
+    timers.push(setTimeout(beginRound, 400));
 
     return {
       pause,

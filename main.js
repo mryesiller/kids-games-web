@@ -1,7 +1,7 @@
 // main.js — ana sayfa: oyun kartları + kategori filtresi + yıldız gösterimi (PRD §5)
 import { t } from "./shared/i18n.js";
-import { getProgress, getTotalStars } from "./shared/storage.js";
-import { initAudio } from "./shared/audio.js";
+import { getProgress, getTotalStars, clearGame, clearProgress } from "./shared/storage.js";
+import { initAudio, toggleMuted, isMuted } from "./shared/audio.js";
 import { starsEl } from "./shared/ui.js";
 import { REWARDS, unlockedRewards, nextReward } from "./shared/rewards.js";
 
@@ -23,6 +23,11 @@ const GAMES = [
   { id: "shadow", name: "Gölge Eşleştir", icon: "👤", age: "4-7", category: "logic", ready: true },
   { id: "bigger", name: "Hangisi Büyük", icon: "⚖️", age: "5-8", category: "math", ready: true },
   { id: "missing-number", name: "Eksik Sayı", icon: "❓", age: "5-9", category: "math", ready: true },
+  { id: "whack", name: "Köstebek Vur", icon: "🐹", age: "5-10", category: "logic", ready: true },
+  { id: "colors", name: "Renk Bul", icon: "🎨", age: "5-8", category: "logic", ready: true },
+  { id: "even-odd", name: "Çift mi Tek mi", icon: "2️⃣", age: "6-10", category: "math", ready: true },
+  { id: "make-ten", name: "On'u Tamamla", icon: "🔟", age: "5-9", category: "math", ready: true },
+  { id: "vanish", name: "Kaybolan", icon: "👀", age: "5-8", category: "memory", ready: true },
 ];
 
 const CATEGORIES = [
@@ -41,7 +46,7 @@ function render() {
   for (const g of GAMES.filter((g) => filter === "all" || g.category === filter)) {
     const card = document.createElement("button");
     card.type = "button";
-    card.style.cssText = `height:190px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:12px;background:${CARD_COLORS[g.category]}`;
+    card.style.cssText = `height:168px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:10px;background:${CARD_COLORS[g.category]}`;
     const icon = document.createElement("span");
     icon.textContent = g.icon;
     icon.style.cssText = "font-size:2.8rem;line-height:1";
@@ -53,8 +58,14 @@ function render() {
     age.style.color = "var(--muted)";
     card.append(icon, name, age);
     if (g.ready) {
-      const { stars } = getProgress(g.id);
+      const { stars, level } = getProgress(g.id);
       if (stars > 0) card.append(starsEl(stars));
+      if (level > 1) {
+        const lv = document.createElement("span");
+        lv.textContent = `Seviye ${level}`;
+        lv.style.cssText = "font-size:0.85rem;color:var(--muted)";
+        card.append(lv);
+      }
       card.addEventListener("click", () => {
         // blink fix: geçiş overlay'i senkron görünür olur, sonra navigasyon
         const overlay = document.createElement("div");
@@ -140,7 +151,132 @@ function showRewards() {
 }
 
 document.getElementById("rewardsBtn").addEventListener("click", showRewards);
-initAudio(); // G-9: ilk dokunuşta ses kilidi açılır
+
+function syncMute() {
+  const b = document.getElementById("muteBtn");
+  const muted = isMuted();
+  b.textContent = muted ? "🔇" : "🔊";
+  b.setAttribute("aria-pressed", String(muted));
+  b.setAttribute("aria-label", muted ? "Sesi aç" : "Sesi kapat");
+}
+
+function confirmReset(message, { hold = false, onYes }) {
+  const overlay = document.createElement("div");
+  overlay.className = "win-overlay";
+  const card = document.createElement("div");
+  card.className = "start-card";
+  const p = document.createElement("p");
+  p.textContent = message;
+  const cancel = document.createElement("button");
+  cancel.type = "button";
+  cancel.className = "primary";
+  cancel.textContent = "Vazgeç";
+  cancel.addEventListener("click", () => overlay.remove());
+  const yes = document.createElement("button");
+  yes.type = "button";
+  yes.className = "danger";
+  yes.textContent = hold ? "Silmek için basılı tut" : "Evet, sil";
+  if (hold) {
+    let timer = 0;
+    const start = (e) => {
+      e.preventDefault();
+      yes.textContent = "Tutuyor...";
+      timer = window.setTimeout(() => {
+        overlay.remove();
+        onYes();
+      }, 1400);
+    };
+    const stop = () => {
+      window.clearTimeout(timer);
+      yes.textContent = "Silmek için basılı tut";
+    };
+    yes.addEventListener("pointerdown", start);
+    yes.addEventListener("pointerup", stop);
+    yes.addEventListener("pointerleave", stop);
+    yes.addEventListener("pointercancel", stop);
+  } else {
+    yes.addEventListener("click", () => {
+      overlay.remove();
+      onYes();
+    });
+  }
+  card.append(p, cancel, yes);
+  overlay.append(card);
+  document.body.append(overlay);
+}
+
+function showReset() {
+  const overlay = document.createElement("div");
+  overlay.className = "win-overlay";
+  const card = document.createElement("div");
+  card.className = "start-card";
+  card.style.alignItems = "stretch";
+  card.style.maxHeight = "86vh";
+  card.style.overflow = "auto";
+  const title = document.createElement("strong");
+  title.textContent = "İlerlemeyi sıfırla";
+  title.style.fontSize = "1.25rem";
+  const note = document.createElement("p");
+  note.textContent = "Yıldızlar ve seviyeler silinir. Ses ayarı kalır.";
+  note.style.fontWeight = "600";
+  card.append(title, note);
+
+  for (const g of GAMES) {
+    const row = document.createElement("div");
+    row.style.cssText = "display:flex;align-items:center;gap:8px;justify-content:space-between";
+    const { stars, level } = getProgress(g.id);
+    const label = document.createElement("span");
+    label.textContent = `${g.icon} ${g.name} · Sv ${level} · ★${stars}`;
+    label.style.cssText = "text-align:left;flex:1;font-size:0.92rem";
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.textContent = "Sıfırla";
+    btn.style.cssText = "min-width:88px;padding:8px";
+    btn.addEventListener("click", () => {
+      confirmReset(`${g.name} silinsin mi? Yıldızlar ve seviye gider.`, {
+        onYes: () => {
+          clearGame(g.id);
+          refreshStars();
+          render();
+          label.textContent = `${g.icon} ${g.name} · Sv 1 · ★0`;
+        },
+      });
+    });
+    row.append(label, btn);
+    card.append(row);
+  }
+
+  const all = document.createElement("button");
+  all.type = "button";
+  all.className = "danger";
+  all.textContent = "Tümünü sıfırla";
+  all.addEventListener("click", () => {
+    confirmReset("Tüm oyunlar silinsin mi? Bunu geri alamazsın.", {
+      hold: true,
+      onYes: () => {
+        clearProgress();
+        refreshStars();
+        render();
+        overlay.remove();
+      },
+    });
+  });
+  const close = document.createElement("button");
+  close.type = "button";
+  close.textContent = "Kapat";
+  close.addEventListener("click", () => overlay.remove());
+  card.append(all, close);
+  overlay.append(card);
+  document.body.append(overlay);
+}
+
+document.getElementById("resetBtn").addEventListener("click", showReset);
+document.getElementById("muteBtn").addEventListener("click", () => {
+  toggleMuted();
+  syncMute();
+});
+initAudio();
+syncMute();
 document.getElementById("loading")?.remove();
 refreshStars();
 render();

@@ -61,10 +61,12 @@ export function getLevel(gameId) {
   return read(gameId, "level") ?? 1;
 }
 
-/** Yıldız yalnızca artırılır (en iyi sonuç korunur). */
+/** Yıldız yalnızca artırılır (en iyi sonuç korunur). 0 yıldız kayıt edilmez. */
 export function setStars(gameId, stars) {
-  const s = Math.max(1, Math.min(3, Math.trunc(stars)));
-  if (s > getStars(gameId)) write(gameId, "stars", s);
+  const s = Math.trunc(Number(stars));
+  if (s < 1) return;
+  const clamped = Math.min(3, s);
+  if (clamped > getStars(gameId)) write(gameId, "stars", clamped);
 }
 
 /** Seviye yalnızca artırılır (en yüksek açılan korunur). */
@@ -91,6 +93,35 @@ export function getTotalStars(gameIds) {
 /** Ana sayfa kartları için: {stars, level} */
 export function getProgress(gameId) {
   return { stars: getStars(gameId), level: getLevel(gameId) };
+}
+
+/** Tek oyunun yıldız, seviye ve rekorunu siler. */
+export function clearGame(gameId) {
+  if (!ok) return;
+  for (const field of ["stars", "level", "best"]) {
+    try {
+      window.localStorage.removeItem(key(gameId, field));
+    } catch {
+      /* yoksay */
+    }
+  }
+}
+
+const PROGRESS_KEEP = new Set([VERSION_KEY, `${PREFIX}muted`]);
+
+/** Tüm oyun ilerlemesini siler; ses tercihi ve şema sürümü kalır. */
+export function clearProgress() {
+  if (!ok) return;
+  try {
+    const keys = [];
+    for (let i = 0; i < window.localStorage.length; i++) {
+      const k = window.localStorage.key(i);
+      if (k && k.startsWith(PREFIX) && !PROGRESS_KEEP.has(k)) keys.push(k);
+    }
+    keys.forEach((k) => window.localStorage.removeItem(k));
+  } catch {
+    /* yoksay */
+  }
 }
 
 /** Testler için: tüm kg: kayıtlarını temizle. */

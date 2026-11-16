@@ -1,13 +1,16 @@
 // ui.js — ortak UI parçaları: üst bar (geri + ses), yıldızlar, kazanma ekranı (PRD G-5, G-6, G-9)
 import { t } from "./i18n.js";
 import { sfx } from "./audio.js";
+import { confetti } from "./fx.js";
 
 /** Oyun sayfası iskeletini kurar: header (geri + ses), #game, footer hint. */
 export function buildShell({ hint = "", hintIcon = "" } = {}) {
   document.body.innerHTML = "";
   const header = document.createElement("header");
+  header.className = "game-bar";
   header.innerHTML = `
     <button type="button" data-action="back">⬅ ${t("game.back")}</button>
+    <strong data-role="level"></strong>
     <button type="button" data-action="sound" aria-pressed="false">🔊</button>`;
   const main = document.createElement("main");
   main.id = "game";
@@ -39,33 +42,65 @@ export function starsEl(stars) {
  * Başla'ya basınca overlay kalkar ve gösterim süresi başlar.
  * @param {{ instruction: string, icon?: string, buttonText?: string, onStart: () => void }} opts
  */
-export function showStartOverlay({ instruction, icon = "", buttonText = "Başla!", onStart }) {
+export function showStartOverlay({
+  instruction,
+  icon = "",
+  buttonText = "Başla!",
+  levelLabel = "",
+  onStart,
+  onHome,
+  onEasier,
+}) {
   const overlay = document.createElement("div");
   overlay.className = "start-overlay";
-  overlay.style.cssText =
-    "position:fixed;inset:0;background:rgb(255 255 255 / 0.75);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;z-index:20";
   const card = document.createElement("div");
-  card.className = "pop";
-  card.style.cssText =
-    "background:var(--surface);border-radius:24px;padding:28px 24px;text-align:center;box-shadow:var(--shadow);max-width:min(90vw,420px)";
+  card.className = "pop start-card";
   if (icon) {
     const ic = document.createElement("div");
     ic.textContent = icon;
-    ic.style.fontSize = "3.5rem";
+    ic.className = "start-icon";
     card.append(ic);
+  }
+  if (levelLabel) {
+    const lv = document.createElement("div");
+    lv.className = "level-pill";
+    lv.textContent = levelLabel;
+    card.append(lv);
   }
   const inst = document.createElement("p");
   inst.textContent = instruction;
-  inst.style.cssText = "font-size:1.25rem;font-weight:700;margin:10px 0 18px";
+  card.append(inst);
   const btn = document.createElement("button");
   btn.className = "primary";
+  btn.type = "button";
   btn.textContent = `▶ ${buttonText}`;
-  btn.style.fontSize = "1.4rem";
   btn.addEventListener("click", () => {
+    sfx.tap();
     overlay.remove();
     onStart();
   });
-  card.append(inst, btn);
+  card.append(btn);
+  if (onEasier) {
+    const easy = document.createElement("button");
+    easy.type = "button";
+    easy.textContent = "Daha kolay";
+    easy.addEventListener("click", () => {
+      overlay.remove();
+      onEasier();
+    });
+    card.append(easy);
+  }
+  if (onHome) {
+    const home = document.createElement("button");
+    home.type = "button";
+    home.dataset.action = "home";
+    home.textContent = `⬅ ${t("game.back")}`;
+    home.addEventListener("click", () => {
+      overlay.remove();
+      onHome();
+    });
+    card.append(home);
+  }
   overlay.append(card);
   document.body.append(overlay);
   return overlay;
@@ -75,17 +110,20 @@ export function showStartOverlay({ instruction, icon = "", buttonText = "Başla!
  * Kazanma ekranı (G-6 cezasız): yıldız + Tekrar Oyna (+ varsa Sonraki Seviye).
  * @param {{ stars: number, onAgain: () => void, onNext?: () => void }} opts
  */
-export function showWinOverlay({ stars, onAgain, onNext }) {
-  sfx.star();
+export function showWinOverlay({ stars, onAgain, onNext, onHome }) {
+  if (stars > 0) {
+    sfx.star();
+    if (onNext) sfx.levelup();
+    confetti();
+  }
   const overlay = document.createElement("div");
-  overlay.className = "win-overlay pop";
-  overlay.style.cssText =
-    "position:fixed;inset:0;background:rgb(0 0 0 / 0.35);display:flex;align-items:center;justify-content:center;z-index:10";
+  overlay.className = "win-overlay";
   const card = document.createElement("div");
-  card.className = "pop";
-  card.style.cssText =
-    "background:var(--surface);border-radius:24px;padding:28px;display:flex;flex-direction:column;align-items:center;gap:14px;box-shadow:var(--shadow);max-width:min(90vw,420px);min-width:min(70vw,300px)";
-  card.append(starsEl(stars));
+  card.className = "pop start-card";
+  const title = document.createElement("strong");
+  title.className = "win-title";
+  title.textContent = stars > 0 ? (onNext ? "Seviye atladın!" : "Harika!") : "Bir daha deneyelim!";
+  card.append(title, starsEl(Math.max(0, stars)));
   const again = document.createElement("button");
   again.className = "primary";
   again.textContent = t("game.again");
@@ -105,6 +143,17 @@ export function showWinOverlay({ stars, onAgain, onNext }) {
       onNext();
     });
     card.append(next);
+  }
+  if (onHome) {
+    const home = document.createElement("button");
+    home.type = "button";
+    home.dataset.action = "home";
+    home.textContent = `⬅ ${t("game.back")}`;
+    home.addEventListener("click", () => {
+      overlay.remove();
+      onHome();
+    });
+    card.append(home);
   }
   overlay.append(card);
   document.body.append(overlay);

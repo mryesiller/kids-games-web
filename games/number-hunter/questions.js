@@ -11,23 +11,44 @@ export function opsForLevel(level) {
   return ["mul"];
 }
 
+/** Toplama sonucu tavanı. Seviye 1 = 10, sonra 20'ye çıkar. */
+export function sumCap(level) {
+  const l = Math.max(1, Math.min(20, Math.trunc(level) || 1));
+  if (l <= 1) return 10;
+  return Math.min(20, 10 + (l - 1) * 2);
+}
+
+/** Çıkarma üst sayısı. 8. seviyede 8, 14'te 20. */
+export function subCap(level) {
+  const l = Math.max(1, Math.min(20, Math.trunc(level) || 1));
+  return Math.min(20, 8 + Math.max(0, l - 8) * 2);
+}
+
+/** Çarpma çarpanı üst sınırı (1..hi). 15'te 2, 20'de 4. */
+export function mulHi(level) {
+  const l = Math.max(1, Math.min(20, Math.trunc(level) || 1));
+  return Math.min(5, 2 + Math.floor(Math.max(0, l - 15) / 2));
+}
+
 /** Tek soru üret: {text, answer, options} — options'ta cevap tam 1 kez. */
 export function makeQuestion(level, rng = Math.random) {
   const ops = opsForLevel(level);
   const op = ops[Math.floor(rng() * ops.length)];
   let a, b, answer;
   if (op === "add") {
-    const max = Math.min(20, 10 + Math.floor((level - 1) / 4) * 5); // 10 → 20 arası kademeli
+    const max = sumCap(level);
     a = Math.floor(rng() * (max + 1));
     b = Math.floor(rng() * (max - a + 1));
     answer = a + b;
   } else if (op === "sub") {
-    a = Math.floor(rng() * 21);
-    b = Math.floor(rng() * (a + 1)); // sonuç hiç negatif olmaz (çocuk dostu)
+    const max = subCap(level);
+    a = Math.floor(rng() * (max + 1));
+    b = Math.floor(rng() * (a + 1));
     answer = a - b;
   } else {
-    a = 1 + Math.floor(rng() * 5);
-    b = 1 + Math.floor(rng() * 5);
+    const hi = mulHi(level);
+    a = 1 + Math.floor(rng() * hi);
+    b = 1 + Math.floor(rng() * hi);
     answer = a * b;
   }
   const symbol = op === "add" ? "+" : op === "sub" ? "−" : "×";

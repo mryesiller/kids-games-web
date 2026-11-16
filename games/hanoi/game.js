@@ -1,11 +1,18 @@
 // game.js — O9 Hanoi Kuleleri (PRD): 3/4/5 disk, nazik geçersiz hamle reddi,
 // hamle sayacı + en az hamle bilgisi, ipucu butonu (rules.js çözüm algoritması).
 import { initialTowers, isValidMove, applyMove, isSolved, optimalMoves, nextHintMove } from "./rules.js";
-import { starsFromMoves } from "../../shared/difficulty.js";
+import { starsFromMoves, clampLevel } from "../../shared/difficulty.js";
 import { createTapSelect } from "../../shared/drag.js";
 import { sfx } from "../../shared/audio.js";
 
-const DISKS_BY_LEVEL = (level) => Math.min(8, 3 + Math.floor((level - 1) / 2)); // 20 seviye: 3-4(1-4) → 5-6(5-8) → 7-8(9+) disk
+/** 3 diskte uzun pratik, sonra 4, en zor 5. 6+ disk bu yaş için fazla. */
+export function disksForLevel(level) {
+  const l = clampLevel(level, 20);
+  if (l <= 8) return 3;
+  if (l <= 14) return 4;
+  return 5;
+}
+const DISKS_BY_LEVEL = disksForLevel;
 const DISK_COLORS = ["#e74c3c", "#e67e22", "#f1c40f", "#2ecc71", "#3498db", "#9b59b6", "#e91e8c", "#16a085"];
 
 export default {
